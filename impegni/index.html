@@ -12,7 +12,7 @@
   :root {
     --bg:#0b1a2e; --card:#13284a; --card2:#1a3360; --line:#24406e;
     --text:#eef3fa; --muted:#93a7c4; --accent:#4c8dff; --accent2:#2f6fe0;
-    --warn:#ffb648; --danger:#ff6b6b;
+    --ok:#3ccf8e; --warn:#ffb648; --danger:#ff6b6b;
   }
   * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
   html,body { margin:0; background:var(--bg); color:var(--text);
@@ -21,12 +21,26 @@
   button, input { font:inherit; color:inherit; }
   button { cursor:pointer; border:0; }
 
-  .mese { display:flex; align-items:center; justify-content:space-between; margin:4px 0 14px; }
-  .mese h1 { margin:0; font-size:22px; text-transform:capitalize; }
+  /* stato attuale */
+  .stato { background:var(--card); border-radius:18px; padding:16px; margin-bottom:16px; }
+  .stato .lab { font-size:13px; color:var(--muted); }
+  .stato .tempo { font-size:34px; font-weight:700; font-variant-numeric:tabular-nums; margin:2px 0 4px; }
+  .stato .sub { font-size:14px; color:var(--muted); margin-bottom:12px; }
+  .stato.incorso { box-shadow:inset 0 0 0 2px var(--ok); }
+  .stato.incorso .tempo { color:var(--ok); }
+  .big { width:100%; padding:16px; border-radius:14px; font-weight:700; font-size:17px; color:#fff; background:var(--accent); }
+  .big:active { background:var(--accent2); }
+  .big.stop { background:var(--danger); }
+  .ridotti { margin-top:10px; font-size:13px; color:var(--muted); }
+  .ridotti b { color:var(--text); }
+  .ridotti.troppi b { color:var(--danger); }
+
+  .mese { display:flex; align-items:center; justify-content:space-between; margin:4px 0 12px; }
+  .mese h1 { margin:0; font-size:21px; text-transform:capitalize; }
   .nav { width:44px; height:44px; border-radius:12px; background:var(--card); font-size:22px; }
 
   .stats { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:14px; }
-  .stat { background:var(--card); border-radius:14px; padding:12px 10px; text-align:center; }
+  .stat { background:var(--card); border-radius:14px; padding:12px 8px; text-align:center; }
   .stat b { display:block; font-size:28px; line-height:1.1; }
   .stat span { font-size:12px; color:var(--muted); }
   .stat.main b { color:var(--accent); }
@@ -35,55 +49,73 @@
   .cal { background:var(--card); border-radius:16px; padding:10px; margin-bottom:14px; }
   .dow, .grid { display:grid; grid-template-columns:repeat(7,1fr); gap:4px; }
   .dow div { text-align:center; font-size:11px; color:var(--muted); padding:4px 0; }
-  .g { position:relative; aspect-ratio:1; border-radius:10px; background:transparent;
+  .g { aspect-ratio:1; border-radius:10px; background:transparent;
        display:flex; flex-direction:column; align-items:center; justify-content:center; font-size:15px; }
   .g.vuoto { visibility:hidden; }
   .g.ha { background:var(--card2); }
   .g.oggi { box-shadow:inset 0 0 0 2px var(--accent); }
   .g.sel { background:var(--accent); color:#fff; }
-  .g .n { display:flex; gap:3px; margin-top:3px; height:6px; }
+  .g .n { display:flex; gap:3px; margin-top:3px; height:6px; align-items:center; }
   .g .n i { width:6px; height:6px; border-radius:50%; background:var(--accent); }
   .g.sel .n i { background:#fff; }
   .g .n i.w { background:var(--warn); }
-  .g .piu { font-size:9px; line-height:6px; color:var(--warn); font-weight:700; }
 
   .giorno { background:var(--card); border-radius:16px; padding:14px; margin-bottom:14px; }
-  .giorno h2 { margin:0 0 10px; font-size:17px; text-transform:capitalize; }
-  .riga { display:flex; gap:8px; margin-bottom:8px; }
-  .riga input { background:var(--bg); border:1px solid var(--line); border-radius:10px; padding:10px; min-width:0; }
-  .riga input[type=time] { width:110px; flex:none; color-scheme:dark; }
-  .riga input[type=text] { flex:1; }
-  .add { width:100%; padding:14px; border-radius:12px; background:var(--accent); color:#fff; font-weight:600; font-size:16px; }
-  .add:active { background:var(--accent2); }
-
-  ul.lista { list-style:none; margin:12px 0 0; padding:0; }
-  ul.lista li { display:flex; align-items:center; gap:10px; padding:10px 0; border-top:1px solid var(--line); }
-  ul.lista .ora { width:48px; color:var(--accent); font-variant-numeric:tabular-nums; font-size:14px; }
-  ul.lista .nota { flex:1; overflow-wrap:anywhere; }
-  ul.lista .nota.sn { color:var(--muted); font-style:italic; }
-  .del { width:36px; height:36px; border-radius:10px; background:transparent; color:var(--danger); font-size:18px; }
-  .nessuno { color:var(--muted); font-size:14px; margin-top:10px; }
+  .giorno h2 { margin:0 0 4px; font-size:17px; text-transform:capitalize; }
+  .giorno .conta { font-size:13px; color:var(--muted); margin-bottom:6px; }
+  .imp { border-top:1px solid var(--line); padding:12px 0; display:flex; gap:10px; align-items:flex-start; }
+  .imp:first-of-type { border-top:0; }
+  .imp .info { flex:1; min-width:0; }
+  .imp .orari { font-size:17px; font-weight:600; font-variant-numeric:tabular-nums; }
+  .imp .orari small { font-weight:400; color:var(--muted); font-size:13px; }
+  .imp .det { font-size:13px; color:var(--muted); margin-top:3px; }
+  .imp .nota { font-size:14px; margin-top:3px; overflow-wrap:anywhere; }
+  .badge { display:inline-block; font-size:11px; font-weight:700; padding:2px 7px; border-radius:6px; margin-top:5px; margin-right:4px; }
+  .b-ok { background:rgba(60,207,142,.15); color:var(--ok); }
+  .b-rid { background:rgba(255,182,72,.15); color:var(--warn); }
+  .b-no { background:rgba(255,107,107,.15); color:var(--danger); }
+  .b-set { background:rgba(76,141,255,.15); color:var(--accent); }
+  .b-run { background:var(--ok); color:#06210f; }
+  .ic { width:38px; height:38px; border-radius:10px; background:var(--card2); font-size:16px; flex:none; }
+  .ic.del { color:var(--danger); background:transparent; }
+  .addman { width:100%; padding:12px; border-radius:12px; background:var(--card2); color:var(--text); margin-top:8px; font-size:15px; }
+  .nessuno { color:var(--muted); font-size:14px; padding:6px 0; }
 
   .sez { font-size:13px; color:var(--muted); text-transform:uppercase; letter-spacing:.05em; margin:20px 0 8px; }
   .mlist { background:var(--card); border-radius:16px; padding:4px 14px; }
-  .mg { display:flex; gap:12px; padding:10px 0; border-top:1px solid var(--line); }
+  .mg { display:flex; gap:12px; padding:10px 0; border-top:1px solid var(--line); cursor:pointer; }
   .mg:first-child { border-top:0; }
-  .mg .d { width:64px; flex:none; font-size:14px; color:var(--muted); text-transform:capitalize; }
-  .mg .d b { display:block; color:var(--text); font-size:16px; }
-  .mg .v { flex:1; font-size:14px; }
+  .mg .d { width:56px; flex:none; font-size:13px; color:var(--muted); text-transform:capitalize; }
+  .mg .d b { display:block; color:var(--text); font-size:17px; }
+  .mg .v { flex:1; font-size:14px; font-variant-numeric:tabular-nums; }
   .mg .v div { padding:2px 0; }
-  .mg .tag { display:inline-block; font-size:11px; padding:2px 6px; border-radius:6px; background:var(--warn); color:#1b1200; font-weight:700; margin-left:4px; }
+  .tag { display:inline-block; font-size:11px; padding:2px 6px; border-radius:6px; background:var(--warn); color:#1b1200; font-weight:700; margin-left:4px; }
 
   .backup { display:flex; gap:8px; margin-top:24px; }
   .backup button { flex:1; padding:12px; border-radius:12px; background:var(--card); color:var(--muted); font-size:14px; }
-  .home { display:block; text-align:center; margin-top:18px; color:var(--muted); font-size:13px; }
+  .nota-legge { font-size:12px; color:var(--muted); margin-top:16px; line-height:1.4; }
+  .home { display:block; text-align:center; margin-top:16px; color:var(--muted); font-size:13px; }
+
+  dialog { border:0; border-radius:18px; padding:18px; background:var(--card); color:var(--text); width:min(92vw,420px); }
+  dialog::backdrop { background:rgba(0,0,0,.6); }
+  dialog h3 { margin:0 0 14px; }
+  dialog label { display:block; font-size:13px; color:var(--muted); margin:10px 0 4px; }
+  dialog input { width:100%; background:var(--bg); border:1px solid var(--line); border-radius:10px; padding:11px; color-scheme:dark; }
+  dialog .hint { font-size:12px; color:var(--muted); margin-top:4px; }
+  dialog .btns { display:flex; gap:8px; margin-top:18px; }
+  dialog .btns button { flex:1; padding:13px; border-radius:12px; background:var(--card2); }
+  dialog .btns .ok { background:var(--accent); color:#fff; font-weight:700; }
+  .err { color:var(--danger); font-size:13px; margin-top:8px; min-height:1em; }
+
   .toast { position:fixed; left:50%; bottom:24px; transform:translateX(-50%); background:#fff; color:#0b1a2e;
-    padding:10px 16px; border-radius:10px; font-size:14px; opacity:0; transition:opacity .2s; pointer-events:none; }
+    padding:10px 16px; border-radius:10px; font-size:14px; opacity:0; transition:opacity .2s; pointer-events:none; z-index:10; }
   .toast.on { opacity:1; }
 </style>
 </head>
 <body>
 <main>
+  <section class="stato" id="stato"></section>
+
   <div class="mese">
     <button class="nav" id="prev" aria-label="Mese precedente">‹</button>
     <h1 id="titolo"></h1>
@@ -91,9 +123,9 @@
   </div>
 
   <div class="stats">
-    <div class="stat main"><b id="sTot">0</b><span>impegni</span></div>
-    <div class="stat"><b id="sGiorni">0</b><span>giorni occupati</span></div>
-    <div class="stat doppi"><b id="sDoppi">0</b><span>giorni con 2+</span></div>
+    <div class="stat main"><b id="sTot">0</b><span>impegni nel mese</span></div>
+    <div class="stat doppi"><b id="sDoppi">0</b><span>giorni con 2</span></div>
+    <div class="stat"><b id="sRid">0</b><span>riposi ridotti</span></div>
   </div>
 
   <div class="cal">
@@ -103,15 +135,12 @@
 
   <section class="giorno">
     <h2 id="gTitolo"></h2>
-    <div class="riga">
-      <input type="time" id="ora" aria-label="Ora (facoltativa)">
-      <input type="text" id="nota" placeholder="Descrizione (facoltativa)" maxlength="120">
-    </div>
-    <button class="add" id="add">+ Aggiungi impegno</button>
-    <ul class="lista" id="lista"></ul>
+    <div class="conta" id="gConta"></div>
+    <div id="lista"></div>
+    <button class="addman" id="addman">+ Aggiungi impegno a mano</button>
   </section>
 
-  <div class="sez">Tutti gli impegni del mese</div>
+  <div class="sez">Impegni del mese</div>
   <div class="mlist" id="mlist"></div>
 
   <div class="backup">
@@ -119,104 +148,237 @@
     <button id="importa">Ripristina backup</button>
     <input type="file" id="file" accept="application/json,.json" hidden>
   </div>
+  <p class="nota-legge">Riposi calcolati in modo indicativo secondo il Reg. CE 561/2006: giornaliero regolare ≥ 11h, ridotto ≥ 9h (max 3 tra due riposi settimanali), settimanale ≥ 24h. Il riferimento ufficiale resta il cronotachigrafo.</p>
   <a class="home" href="../">← Tutte le app</a>
 </main>
+
+<dialog id="dlg">
+  <form method="dialog" id="form">
+    <h3 id="dTitolo">Impegno</h3>
+    <label for="fInizio">Inizio</label>
+    <input type="datetime-local" id="fInizio" required>
+    <label for="fFine">Fine</label>
+    <input type="datetime-local" id="fFine">
+    <div class="hint">Lascia vuoto se l'impegno è ancora in corso.</div>
+    <label for="fNota">Nota (facoltativa)</label>
+    <input type="text" id="fNota" maxlength="120" placeholder="Es. carico Verona, scarico Bologna">
+    <div class="err" id="fErr"></div>
+    <div class="btns">
+      <button type="button" id="fAnnulla">Annulla</button>
+      <button type="submit" class="ok">Salva</button>
+    </div>
+  </form>
+</dialog>
 <div class="toast" id="toast"></div>
 
 <script>
-const KEY = 'impegni-v1';
+const KEY = 'impegni-camion-v1';
+const H = 3600000;
 const $ = id => document.getElementById(id);
 const pad = n => String(n).padStart(2, '0');
-const iso = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+const isoD = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+const isoDT = d => `${isoD(d)}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+const parseD = s => { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d); };
+const parseDT = s => s ? new Date(s) : null;
+const hm = d => `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+const dur = ms => { const m = Math.max(0, Math.round(ms / 60000)); return `${Math.floor(m / 60)}h ${pad(m % 60)}m`; };
+const esc = s => s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
+// dati: { id, inizio:'YYYY-MM-DDTHH:MM', fine:'...'|'' , nota }
 let dati = [];
 try { dati = JSON.parse(localStorage.getItem(KEY)) || []; } catch (e) { dati = []; }
 const salva = () => { try { localStorage.setItem(KEY, JSON.stringify(dati)); } catch (e) { toast('Impossibile salvare'); } };
+const ordinati = () => [...dati].sort((a, b) => a.inizio.localeCompare(b.inizio));
+const inCorso = () => dati.find(x => !x.fine);
+
+// riposo prima di ogni impegno + conteggio riposi ridotti tra settimanali
+function analisi() {
+  const ord = ordinati(), info = {};
+  let rid = 0;
+  ord.forEach((x, i) => {
+    const prev = ord[i - 1];
+    let r = null, tipo = null;
+    if (prev && prev.fine) {
+      r = parseDT(x.inizio) - parseDT(prev.fine);
+      if (r >= 24 * H) { tipo = 'set'; rid = 0; }
+      else if (r >= 11 * H) tipo = 'ok';
+      else if (r >= 9 * H) { tipo = 'rid'; rid++; }
+      else tipo = 'no';
+    }
+    info[x.id] = { riposo: r, tipo, ridotti: rid };
+  });
+  return { info, ridottiAttuali: rid };
+}
+
+// giorni di calendario toccati da un impegno
+function giorniDi(x) {
+  const a = parseDT(x.inizio), b = x.fine ? parseDT(x.fine) : new Date();
+  const out = [], d = new Date(a.getFullYear(), a.getMonth(), a.getDate());
+  let guard = 0;
+  while (d <= b && guard++ < 10) { out.push(isoD(d)); d.setDate(d.getDate() + 1); }
+  if (!out.length) out.push(isoD(a));
+  return out;
+}
 
 const oggi = new Date();
 let anno = oggi.getFullYear(), mese = oggi.getMonth();
-let sel = iso(oggi);
-
+let sel = isoD(oggi);
 const fmtMese = new Intl.DateTimeFormat('it-IT', { month: 'long', year: 'numeric' });
 const fmtGiorno = new Intl.DateTimeFormat('it-IT', { weekday: 'long', day: 'numeric', month: 'long' });
 const fmtDow = new Intl.DateTimeFormat('it-IT', { weekday: 'short' });
-const parse = s => { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d); };
+const fmtBreve = new Intl.DateTimeFormat('it-IT', { day: 'numeric', month: 'short' });
 
-function delGiorno(g) {
-  return dati.filter(x => x.data === g).sort((a, b) => (a.ora || '99').localeCompare(b.ora || '99') || a.id - b.id);
+function badgeRiposo(a) {
+  if (!a || a.tipo === null) return '';
+  const t = dur(a.riposo);
+  if (a.tipo === 'set') return `<span class="badge b-set">Riposo settimanale ${t}</span>`;
+  if (a.tipo === 'ok') return `<span class="badge b-ok">Riposo ${t}</span>`;
+  if (a.tipo === 'rid') return `<span class="badge b-rid">Riposo ridotto ${t} (${a.ridotti}/3)</span>`;
+  return `<span class="badge b-no">Riposo insufficiente ${t}</span>`;
+}
+
+function orariTesto(x) {
+  const a = parseDT(x.inizio), b = parseDT(x.fine);
+  if (!b) return `${hm(a)} → <small>in corso</small>`;
+  const altroGiorno = isoD(a) !== isoD(b);
+  return `${hm(a)} → ${hm(b)}${altroGiorno ? ` <small>(${fmtBreve.format(b)})</small>` : ''}`;
+}
+
+function renderStato() {
+  const el = $('stato'), c = inCorso(), { ridottiAttuali } = analisi();
+  const rid = `<div class="ridotti ${ridottiAttuali >= 3 ? 'troppi' : ''}">Riposi ridotti dall'ultimo settimanale: <b>${ridottiAttuali}/3</b></div>`;
+  if (c) {
+    const a = parseDT(c.inizio);
+    el.className = 'stato incorso';
+    el.innerHTML = `<div class="lab">Impegno in corso</div>
+      <div class="tempo">${dur(Date.now() - a)}</div>
+      <div class="sub">Iniziato ${fmtBreve.format(a)} alle ${hm(a)}</div>
+      <button class="big stop" id="btnFine">■ Termina impegno ora</button>${rid}`;
+    $('btnFine').onclick = () => { c.fine = isoDT(new Date()); salva(); render(); toast('Impegno terminato'); };
+  } else {
+    const ult = ordinati().filter(x => x.fine).pop();
+    el.className = 'stato';
+    if (ult) {
+      const f = parseDT(ult.fine), r = Date.now() - f;
+      const st = r >= 24 * H ? 'riposo settimanale' : r >= 11 * H ? 'riposo regolare raggiunto' : r >= 9 * H ? 'riposo ridotto raggiunto' : `mancano ${dur(9 * H - r)} al riposo ridotto, ${dur(11 * H - r)} al regolare`;
+      el.innerHTML = `<div class="lab">In riposo da</div>
+        <div class="tempo">${dur(r)}</div>
+        <div class="sub">Fine ultimo impegno: ${fmtBreve.format(f)} alle ${hm(f)} · ${st}</div>
+        <button class="big" id="btnInizio">▶ Inizia impegno ora</button>${rid}`;
+    } else {
+      el.innerHTML = `<div class="lab">Nessun impegno registrato</div>
+        <div class="sub" style="margin-top:6px">Tocca il pulsante quando inizi a lavorare, e "Termina" quando finisci. Puoi anche aggiungere impegni passati a mano.</div>
+        <button class="big" id="btnInizio">▶ Inizia impegno ora</button>`;
+    }
+    $('btnInizio').onclick = () => {
+      dati.push({ id: Date.now(), inizio: isoDT(new Date()), fine: '', nota: '' });
+      salva(); sel = isoD(new Date()); anno = new Date().getFullYear(); mese = new Date().getMonth();
+      render(); toast('Impegno iniziato');
+    };
+  }
 }
 
 function render() {
+  renderStato();
+  const { info } = analisi();
   const prefisso = `${anno}-${pad(mese + 1)}-`;
-  const delMese = dati.filter(x => x.data.startsWith(prefisso));
-  const perGiorno = {};
-  delMese.forEach(x => perGiorno[x.data] = (perGiorno[x.data] || 0) + 1);
+  const ord = ordinati();
 
+  // impegni per giorno (un impegno può toccare 2 giorni)
+  const perGiorno = {};
+  ord.forEach(x => giorniDi(x).forEach(g => (perGiorno[g] = perGiorno[g] || []).push(x)));
+
+  // conteggio mese: ogni impegno conta una volta, nel giorno in cui inizia
+  const delMese = ord.filter(x => x.inizio.startsWith(prefisso));
   $('titolo').textContent = fmtMese.format(new Date(anno, mese, 1));
   $('sTot').textContent = delMese.length;
-  $('sGiorni').textContent = Object.keys(perGiorno).length;
-  $('sDoppi').textContent = Object.values(perGiorno).filter(n => n >= 2).length;
+  $('sDoppi').textContent = Object.keys(perGiorno).filter(g => g.startsWith(prefisso) && perGiorno[g].length >= 2).length;
+  $('sRid').textContent = delMese.filter(x => info[x.id].tipo === 'rid').length;
 
   // calendario
   const grid = $('grid'); grid.innerHTML = '';
   const primo = (new Date(anno, mese, 1).getDay() + 6) % 7;
-  const giorni = new Date(anno, mese + 1, 0).getDate();
+  const nGiorni = new Date(anno, mese + 1, 0).getDate();
   for (let i = 0; i < primo; i++) grid.insertAdjacentHTML('beforeend', '<div class="g vuoto"></div>');
-  for (let d = 1; d <= giorni; d++) {
-    const g = prefisso + pad(d), n = perGiorno[g] || 0;
+  for (let d = 1; d <= nGiorni; d++) {
+    const g = prefisso + pad(d), n = (perGiorno[g] || []).length;
     const b = document.createElement('button');
-    b.className = 'g' + (n ? ' ha' : '') + (g === iso(oggi) ? ' oggi' : '') + (g === sel ? ' sel' : '');
-    let pallini = '';
-    for (let i = 0; i < Math.min(n, 3); i++) pallini += `<i class="${n >= 2 ? 'w' : ''}"></i>`;
-    if (n > 3) pallini = `<i class="w"></i><i class="w"></i><span class="piu">+${n - 2}</span>`;
-    b.innerHTML = `${d}<span class="n">${pallini}</span>`;
+    b.className = 'g' + (n ? ' ha' : '') + (g === isoD(oggi) ? ' oggi' : '') + (g === sel ? ' sel' : '');
+    b.innerHTML = `${d}<span class="n">${Array.from({ length: Math.min(n, 3) }, () => `<i class="${n >= 2 ? 'w' : ''}"></i>`).join('')}</span>`;
     b.onclick = () => { sel = g; render(); };
     grid.appendChild(b);
   }
 
   // giorno selezionato
-  $('gTitolo').textContent = fmtGiorno.format(parse(sel));
+  $('gTitolo').textContent = fmtGiorno.format(parseD(sel));
+  const items = perGiorno[sel] || [];
+  $('gConta').textContent = items.length === 0 ? 'Nessun impegno' : items.length === 1 ? '1 impegno' : `${items.length} impegni in questo giorno`;
   const lista = $('lista'); lista.innerHTML = '';
-  const items = delGiorno(sel);
-  if (!items.length) lista.innerHTML = '<li class="nessuno" style="border:0">Nessun impegno in questo giorno.</li>';
   items.forEach(x => {
-    const li = document.createElement('li');
-    li.innerHTML = `<span class="ora">${x.ora || '—'}</span><span class="nota ${x.nota ? '' : 'sn'}"></span><button class="del" aria-label="Elimina">✕</button>`;
-    li.querySelector('.nota').textContent = x.nota || 'Impegno';
-    li.querySelector('.del').onclick = () => {
+    const a = parseDT(x.inizio), b = x.fine ? parseDT(x.fine) : new Date();
+    const div = document.createElement('div'); div.className = 'imp';
+    div.innerHTML = `<div class="info">
+        <div class="orari">${orariTesto(x)}</div>
+        <div class="det">Durata ${dur(b - a)}${isoD(a) !== sel ? ` · iniziato il ${fmtBreve.format(a)}` : ''}</div>
+        ${x.nota ? `<div class="nota">${esc(x.nota)}</div>` : ''}
+        <div>${x.fine ? '' : '<span class="badge b-run">IN CORSO</span>'}${badgeRiposo(info[x.id])}</div>
+      </div>
+      <button class="ic" aria-label="Modifica">✎</button>
+      <button class="ic del" aria-label="Elimina">✕</button>`;
+    div.querySelector('.ic').onclick = () => apriForm(x);
+    div.querySelector('.del').onclick = () => {
       if (!confirm('Eliminare questo impegno?')) return;
       dati = dati.filter(y => y.id !== x.id); salva(); render();
     };
-    lista.appendChild(li);
+    lista.appendChild(div);
   });
 
   // elenco del mese
   const ml = $('mlist'); ml.innerHTML = '';
-  const date = Object.keys(perGiorno).sort();
-  if (!date.length) ml.innerHTML = '<div class="nessuno" style="padding:10px 0">Ancora nessun impegno questo mese.</div>';
+  const date = Object.keys(perGiorno).filter(g => g.startsWith(prefisso)).sort();
+  if (!date.length) ml.innerHTML = '<div class="nessuno" style="padding:12px 0">Ancora nessun impegno questo mese.</div>';
   date.forEach(g => {
-    const its = delGiorno(g), dt = parse(g);
+    const its = perGiorno[g], dt = parseD(g);
     const div = document.createElement('div'); div.className = 'mg';
     div.innerHTML = `<div class="d">${fmtDow.format(dt)}<b>${dt.getDate()}</b></div><div class="v"></div>`;
     const v = div.querySelector('.v');
-    its.forEach(x => { const r = document.createElement('div'); r.textContent = (x.ora ? x.ora + '  ' : '') + (x.nota || 'Impegno'); v.appendChild(r); });
+    its.forEach(x => { const r = document.createElement('div'); r.innerHTML = orariTesto(x) + (x.nota ? ` · ${esc(x.nota)}` : ''); v.appendChild(r); });
     if (its.length >= 2) v.firstChild.insertAdjacentHTML('beforeend', `<span class="tag">${its.length}</span>`);
-    div.onclick = () => { sel = g; render(); scrollTo({ top: 0, behavior: 'smooth' }); };
+    div.onclick = () => { sel = g; render(); $('gTitolo').scrollIntoView({ behavior: 'smooth', block: 'center' }); };
     ml.appendChild(div);
   });
 }
 
-$('add').onclick = () => {
-  dati.push({ id: Date.now(), data: sel, ora: $('ora').value, nota: $('nota').value.trim() });
-  salva(); $('ora').value = ''; $('nota').value = '';
-  render(); toast('Impegno aggiunto');
-};
-$('nota').addEventListener('keydown', e => { if (e.key === 'Enter') $('add').click(); });
+// form aggiungi / modifica
+let inModifica = null;
+function apriForm(x) {
+  inModifica = x || null;
+  $('dTitolo').textContent = x ? 'Modifica impegno' : 'Nuovo impegno';
+  $('fInizio').value = x ? x.inizio : `${sel}T06:00`;
+  $('fFine').value = x ? x.fine : '';
+  $('fNota').value = x ? x.nota : '';
+  $('fErr').textContent = '';
+  $('dlg').showModal();
+}
+$('addman').onclick = () => apriForm(null);
+$('fAnnulla').onclick = () => $('dlg').close();
+$('form').addEventListener('submit', e => {
+  const ini = $('fInizio').value, fin = $('fFine').value;
+  if (!ini) { e.preventDefault(); $('fErr').textContent = "Inserisci l'inizio."; return; }
+  if (fin && fin <= ini) { e.preventDefault(); $('fErr').textContent = "La fine deve essere dopo l'inizio."; return; }
+  if (!fin && dati.some(y => !y.fine && y !== inModifica)) { e.preventDefault(); $('fErr').textContent = "C'è già un impegno in corso: inserisci la fine."; return; }
+  const sovrapp = dati.find(y => y !== inModifica && y.inizio < (fin || '9999') && (y.fine || '9999') > ini);
+  if (sovrapp) { e.preventDefault(); $('fErr').textContent = 'Si sovrappone a un altro impegno.'; return; }
+  if (inModifica) Object.assign(inModifica, { inizio: ini, fine: fin, nota: $('fNota').value.trim() });
+  else dati.push({ id: Date.now(), inizio: ini, fine: fin, nota: $('fNota').value.trim() });
+  salva(); sel = ini.slice(0, 10); anno = +ini.slice(0, 4); mese = +ini.slice(5, 7) - 1;
+  render(); toast('Salvato');
+});
 
 function cambiaMese(delta) {
   mese += delta;
   if (mese < 0) { mese = 11; anno--; } else if (mese > 11) { mese = 0; anno++; }
-  sel = (anno === oggi.getFullYear() && mese === oggi.getMonth()) ? iso(oggi) : `${anno}-${pad(mese + 1)}-01`;
+  sel = (anno === oggi.getFullYear() && mese === oggi.getMonth()) ? isoD(oggi) : `${anno}-${pad(mese + 1)}-01`;
   render();
 }
 $('prev').onclick = () => cambiaMese(-1);
@@ -226,7 +388,7 @@ $('next').onclick = () => cambiaMese(1);
 $('esporta').onclick = () => {
   const blob = new Blob([JSON.stringify(dati, null, 1)], { type: 'application/json' });
   const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob); a.download = `impegni-backup-${iso(new Date())}.json`;
+  a.href = URL.createObjectURL(blob); a.download = `impegni-backup-${isoD(new Date())}.json`;
   a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 };
 $('importa').onclick = () => $('file').click();
@@ -234,7 +396,7 @@ $('file').onchange = async e => {
   const f = e.target.files[0]; if (!f) return;
   try {
     const arr = JSON.parse(await f.text());
-    if (!Array.isArray(arr) || !arr.every(x => x && /^\d{4}-\d{2}-\d{2}$/.test(x.data))) throw 0;
+    if (!Array.isArray(arr) || !arr.every(x => x && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(x.inizio))) throw 0;
     if (!confirm(`Ripristinare ${arr.length} impegni? Quelli attuali verranno sostituiti.`)) return;
     dati = arr; salva(); render(); toast('Backup ripristinato');
   } catch (err) { toast('File non valido'); }
@@ -245,6 +407,8 @@ let tt;
 function toast(t) { const el = $('toast'); el.textContent = t; el.classList.add('on'); clearTimeout(tt); tt = setTimeout(() => el.classList.remove('on'), 1600); }
 
 render();
+setInterval(renderStato, 30000);
+document.addEventListener('visibilitychange', () => { if (!document.hidden) render(); });
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
 </script>
 </body>
