@@ -12,7 +12,7 @@
   :root {
     --bg:#0b1a2e; --card:#13284a; --card2:#1a3360; --line:#24406e;
     --text:#eef3fa; --muted:#93a7c4; --accent:#4c8dff; --accent2:#2f6fe0;
-    --ok:#3ccf8e; --warn:#ffb648; --danger:#ff6b6b;
+    --ok:#3ccf8e; --warn:#ffb648; --danger:#ff6b6b; --drive:#b48cff;
   }
   * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
   html,body { margin:0; background:var(--bg); color:var(--text);
@@ -28,23 +28,70 @@
   .stato .sub { font-size:14px; color:var(--muted); margin-bottom:12px; }
   .stato.incorso { box-shadow:inset 0 0 0 2px var(--ok); }
   .stato.incorso .tempo { color:var(--ok); }
+  .stato.guida { box-shadow:inset 0 0 0 2px var(--drive); }
+  .live { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:4px 0 12px; }
+  .live div { background:var(--bg); border-radius:12px; padding:10px; }
+  .live span { display:block; font-size:12px; color:var(--muted); }
+  .live b { font-size:19px; font-variant-numeric:tabular-nums; }
+  .live b small { font-size:12px; color:var(--muted); font-weight:400; }
+  .live .over b { color:var(--danger); }
+  .live .warn b { color:var(--warn); }
   .big { width:100%; padding:16px; border-radius:14px; font-weight:700; font-size:17px; color:#fff; background:var(--accent); }
-  .big:active { background:var(--accent2); }
+  .big:active { opacity:.85; }
+  .big.drive { background:var(--drive); color:#1a0b33; }
   .big.stop { background:var(--danger); }
+  .big.sec { background:transparent; box-shadow:inset 0 0 0 2px var(--danger); color:var(--danger); padding:12px; font-size:15px; margin-top:8px; }
   .ridotti { margin-top:10px; font-size:13px; color:var(--muted); }
   .ridotti b { color:var(--text); }
   .ridotti.troppi b { color:var(--danger); }
 
+  /* settimane */
+  .sett { background:var(--card); border-radius:18px; padding:14px; margin-bottom:16px; }
+  .sett .top { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
+  .sett .top div { text-align:center; }
+  .sett .top b { display:block; font-size:16px; }
+  .sett .top span { font-size:12px; color:var(--muted); }
+  .bar { margin-bottom:12px; }
+  .bar .r { display:flex; justify-content:space-between; font-size:13px; color:var(--muted); margin-bottom:5px; }
+  .bar .r b { color:var(--text); font-size:16px; font-variant-numeric:tabular-nums; }
+  .bar .t { height:10px; background:var(--bg); border-radius:6px; overflow:hidden; }
+  .bar .t i { display:block; height:100%; background:var(--drive); border-radius:6px; }
+  .bar.warn .t i { background:var(--warn); }
+  .bar.over .t i { background:var(--danger); }
+  .bar.over .r b { color:var(--danger); }
+  .bar .note { font-size:12px; color:var(--muted); margin-top:4px; }
+  .giornate { display:grid; grid-template-columns:repeat(7,1fr); gap:4px; margin-top:4px; }
+  .giornate div { background:var(--bg); border-radius:8px; padding:6px 2px; text-align:center; font-size:11px; color:var(--muted); }
+  .giornate b { display:block; font-size:12px; color:var(--text); margin-top:2px; font-variant-numeric:tabular-nums; }
+  .giornate .x b { color:var(--warn); }
+  .giornate .xx b { color:var(--danger); }
+  .giornate .oggi { box-shadow:inset 0 0 0 1px var(--accent); }
+  .sett .mini { display:flex; gap:8px; margin-top:12px; }
+  .sett .mini div { flex:1; background:var(--bg); border-radius:10px; padding:8px; text-align:center; font-size:12px; color:var(--muted); }
+  .sett .mini b { display:block; font-size:18px; color:var(--text); }
+  .storico { margin-top:12px; border-top:1px solid var(--line); }
+  .storico summary { padding:12px 0 4px; color:var(--accent); font-size:14px; cursor:pointer; list-style:none; }
+  .storico summary::-webkit-details-marker { display:none; }
+  .sw { display:flex; justify-content:space-between; align-items:center; padding:10px 6px; border-radius:10px; font-size:14px; cursor:pointer; }
+  .sw:nth-child(even) { background:var(--bg); }
+  .sw.cur { box-shadow:inset 0 0 0 1px var(--drive); }
+  .sw .dd { color:var(--muted); }
+  .sw .hh { text-align:right; font-variant-numeric:tabular-nums; }
+  .sw .hh small { display:block; color:var(--muted); font-size:11px; }
+  .sw .hh .over { color:var(--danger); }
+
   .mese { display:flex; align-items:center; justify-content:space-between; margin:4px 0 12px; }
   .mese h1 { margin:0; font-size:21px; text-transform:capitalize; }
-  .nav { width:44px; height:44px; border-radius:12px; background:var(--card); font-size:22px; }
+  .nav { width:44px; height:44px; border-radius:12px; background:var(--card); font-size:22px; flex:none; }
+  .sett .nav { background:var(--card2); }
 
-  .stats { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:14px; }
+  .stats { display:grid; grid-template-columns:repeat(2,1fr); gap:8px; margin-bottom:14px; }
   .stat { background:var(--card); border-radius:14px; padding:12px 8px; text-align:center; }
-  .stat b { display:block; font-size:28px; line-height:1.1; }
+  .stat b { display:block; font-size:26px; line-height:1.15; font-variant-numeric:tabular-nums; }
   .stat span { font-size:12px; color:var(--muted); }
   .stat.main b { color:var(--accent); }
   .stat.doppi b { color:var(--warn); }
+  .stat.drv b { color:var(--drive); }
 
   .cal { background:var(--card); border-radius:16px; padding:10px; margin-bottom:14px; }
   .dow, .grid { display:grid; grid-template-columns:repeat(7,1fr); gap:4px; }
@@ -69,6 +116,8 @@
   .imp .orari { font-size:17px; font-weight:600; font-variant-numeric:tabular-nums; }
   .imp .orari small { font-weight:400; color:var(--muted); font-size:13px; }
   .imp .det { font-size:13px; color:var(--muted); margin-top:3px; }
+  .imp .det b { color:var(--drive); font-weight:600; }
+  .imp .gl { font-size:12px; color:var(--muted); margin-top:3px; font-variant-numeric:tabular-nums; }
   .imp .nota { font-size:14px; margin-top:3px; overflow-wrap:anywhere; }
   .badge { display:inline-block; font-size:11px; font-weight:700; padding:2px 7px; border-radius:6px; margin-top:5px; margin-right:4px; }
   .b-ok { background:rgba(60,207,142,.15); color:var(--ok); }
@@ -76,6 +125,7 @@
   .b-no { background:rgba(255,107,107,.15); color:var(--danger); }
   .b-set { background:rgba(76,141,255,.15); color:var(--accent); }
   .b-run { background:var(--ok); color:#06210f; }
+  .b-drv { background:var(--drive); color:#1a0b33; }
   .ic { width:38px; height:38px; border-radius:10px; background:var(--card2); font-size:16px; flex:none; }
   .ic.del { color:var(--danger); background:transparent; }
   .addman { width:100%; padding:12px; border-radius:12px; background:var(--card2); color:var(--text); margin-top:8px; font-size:15px; }
@@ -89,19 +139,29 @@
   .mg .d b { display:block; color:var(--text); font-size:17px; }
   .mg .v { flex:1; font-size:14px; font-variant-numeric:tabular-nums; }
   .mg .v div { padding:2px 0; }
+  .mg .v .gd { color:var(--drive); font-size:12px; }
   .tag { display:inline-block; font-size:11px; padding:2px 6px; border-radius:6px; background:var(--warn); color:#1b1200; font-weight:700; margin-left:4px; }
 
   .backup { display:flex; gap:8px; margin-top:24px; }
   .backup button { flex:1; padding:12px; border-radius:12px; background:var(--card); color:var(--muted); font-size:14px; }
-  .nota-legge { font-size:12px; color:var(--muted); margin-top:16px; line-height:1.4; }
+  .nota-legge { font-size:12px; color:var(--muted); margin-top:16px; line-height:1.45; }
   .home { display:block; text-align:center; margin-top:16px; color:var(--muted); font-size:13px; }
 
-  dialog { border:0; border-radius:18px; padding:18px; background:var(--card); color:var(--text); width:min(92vw,420px); }
+  dialog { border:0; border-radius:18px; padding:18px; background:var(--card); color:var(--text); width:min(94vw,440px); max-height:90vh; }
   dialog::backdrop { background:rgba(0,0,0,.6); }
-  dialog h3 { margin:0 0 14px; }
+  dialog h3 { margin:0 0 10px; }
+  dialog h4 { margin:18px 0 4px; font-size:15px; color:var(--drive); }
   dialog label { display:block; font-size:13px; color:var(--muted); margin:10px 0 4px; }
-  dialog input { width:100%; background:var(--bg); border:1px solid var(--line); border-radius:10px; padding:11px; color-scheme:dark; }
+  dialog input { width:100%; background:var(--bg); border:1px solid var(--line); border-radius:10px; padding:10px; color-scheme:dark; min-width:0; }
   dialog .hint { font-size:12px; color:var(--muted); margin-top:4px; }
+  .grow { display:grid; grid-template-columns:auto 1fr auto 1fr 34px; gap:6px; align-items:center; margin-top:8px; }
+  .grow span { font-size:13px; color:var(--muted); }
+  .grow input { padding:9px 6px; font-size:15px; text-align:center; }
+  .grow small { grid-column:2 / 5; font-size:11px; color:var(--muted); margin-top:-2px; }
+  .grow button { height:40px; border-radius:10px; background:transparent; color:var(--danger); font-size:16px; }
+  .addg { width:100%; margin-top:10px; padding:11px; border-radius:10px; background:var(--card2); color:var(--drive); font-size:14px; }
+  .gtot { font-size:13px; color:var(--muted); margin-top:8px; }
+  .gtot b { color:var(--drive); }
   dialog .btns { display:flex; gap:8px; margin-top:18px; }
   dialog .btns button { flex:1; padding:13px; border-radius:12px; background:var(--card2); }
   dialog .btns .ok { background:var(--accent); color:#fff; font-weight:700; }
@@ -116,6 +176,22 @@
 <main>
   <section class="stato" id="stato"></section>
 
+  <section class="sett" id="sett">
+    <div class="top">
+      <button class="nav" id="sPrev" aria-label="Settimana precedente">‹</button>
+      <div><b id="sTitolo"></b><span id="sSotto"></span></div>
+      <button class="nav" id="sNext" aria-label="Settimana successiva">›</button>
+    </div>
+    <div class="bar" id="barSett"></div>
+    <div class="bar" id="barBi"></div>
+    <div class="giornate" id="giornate"></div>
+    <div class="mini" id="sMini"></div>
+    <details class="storico" id="storico">
+      <summary>Storico settimane ▾</summary>
+      <div id="storicoList"></div>
+    </details>
+  </section>
+
   <div class="mese">
     <button class="nav" id="prev" aria-label="Mese precedente">‹</button>
     <h1 id="titolo"></h1>
@@ -124,7 +200,8 @@
 
   <div class="stats">
     <div class="stat main"><b id="sTot">0</b><span>impegni nel mese</span></div>
-    <div class="stat doppi"><b id="sDoppi">0</b><span>giorni con 2</span></div>
+    <div class="stat drv"><b id="sGuida">0h</b><span>ore di guida nel mese</span></div>
+    <div class="stat doppi"><b id="sDoppi">0</b><span>giorni con 2 impegni</span></div>
     <div class="stat"><b id="sRid">0</b><span>riposi ridotti</span></div>
   </div>
 
@@ -148,20 +225,27 @@
     <button id="importa">Ripristina backup</button>
     <input type="file" id="file" accept="application/json,.json" hidden>
   </div>
-  <p class="nota-legge">Riposi calcolati in modo indicativo secondo il Reg. CE 561/2006: giornaliero regolare ≥ 11h, ridotto ≥ 9h (max 3 tra due riposi settimanali), settimanale ≥ 24h. Il riferimento ufficiale resta il cronotachigrafo.</p>
+  <p class="nota-legge">Calcoli indicativi secondo il Reg. CE 561/2006 — guida giornaliera max 9h (10h al massimo 2 volte a settimana), settimanale max 56h, due settimane consecutive max 90h, pausa di 45 min dopo 4h30 di guida. Riposo giornaliero regolare ≥ 11h, ridotto ≥ 9h (max 3 tra due riposi settimanali), settimanale ≥ 24h. Settimana da lunedì 00:00 a domenica 24:00. Il riferimento ufficiale resta il cronotachigrafo.</p>
   <a class="home" href="../">← Tutte le app</a>
 </main>
 
 <dialog id="dlg">
   <form method="dialog" id="form">
     <h3 id="dTitolo">Impegno</h3>
-    <label for="fInizio">Inizio</label>
+    <label for="fInizio">Inizio impegno</label>
     <input type="datetime-local" id="fInizio" required>
-    <label for="fFine">Fine</label>
+    <label for="fFine">Fine impegno</label>
     <input type="datetime-local" id="fFine">
     <div class="hint">Lascia vuoto se l'impegno è ancora in corso.</div>
     <label for="fNota">Nota (facoltativa)</label>
     <input type="text" id="fNota" maxlength="120" placeholder="Es. carico Verona, scarico Bologna">
+
+    <h4>Periodi di guida</h4>
+    <div class="hint">Da che ora a che ora hai guidato. Aggiungi un periodo per ogni tratto tra una pausa e l'altra. Se passi la mezzanotte, l'app capisce da sola che è il giorno dopo.</div>
+    <div id="fGuide"></div>
+    <button type="button" class="addg" id="fAddG">+ Aggiungi periodo di guida</button>
+    <div class="gtot" id="fGTot"></div>
+
     <div class="err" id="fErr"></div>
     <div class="btns">
       <button type="button" id="fAnnulla">Annulla</button>
@@ -173,23 +257,45 @@
 
 <script>
 const KEY = 'impegni-camion-v1';
-const H = 3600000;
+const MIN = 60000, H = 60 * MIN;
 const $ = id => document.getElementById(id);
 const pad = n => String(n).padStart(2, '0');
 const isoD = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 const isoDT = d => `${isoD(d)}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 const parseD = s => { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d); };
-const parseDT = s => s ? new Date(s) : null;
+const T = s => new Date(s).getTime();
 const hm = d => `${pad(d.getHours())}:${pad(d.getMinutes())}`;
-const dur = ms => { const m = Math.max(0, Math.round(ms / 60000)); return `${Math.floor(m / 60)}h ${pad(m % 60)}m`; };
+const dur = ms => { const m = Math.max(0, Math.round(ms / MIN)); return `${Math.floor(m / 60)}h ${pad(m % 60)}m`; };
+const ore = ms => { const m = Math.max(0, Math.round(ms / MIN)); return m % 60 ? `${Math.floor(m / 60)}h${pad(m % 60)}` : `${m / 60}h`; };
 const esc = s => s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const clip = (a, b, lo, hi) => Math.max(0, Math.min(b, hi) - Math.max(a, lo));
 
-// dati: { id, inizio:'YYYY-MM-DDTHH:MM', fine:'...'|'' , nota }
+// dati: { id, inizio, fine|'' , nota, guide:[{inizio, fine|''}] }
 let dati = [];
 try { dati = JSON.parse(localStorage.getItem(KEY)) || []; } catch (e) { dati = []; }
+dati.forEach(x => { if (!Array.isArray(x.guide)) x.guide = []; });
 const salva = () => { try { localStorage.setItem(KEY, JSON.stringify(dati)); } catch (e) { toast('Impossibile salvare'); } };
 const ordinati = () => [...dati].sort((a, b) => a.inizio.localeCompare(b.inizio));
 const inCorso = () => dati.find(x => !x.fine);
+const guidaAttiva = x => x && x.guide.find(g => !g.fine);
+
+// intervalli di guida in millisecondi (quella in corso arriva fino ad adesso)
+const intervalli = x => x.guide.map(g => [T(g.inizio), g.fine ? T(g.fine) : Date.now()]).sort((a, b) => a[0] - b[0]);
+const guidaImpegno = x => intervalli(x).reduce((s, [a, b]) => s + (b - a), 0);
+const guidaTra = (lo, hi) => dati.reduce((s, x) => s + intervalli(x).reduce((t, [a, b]) => t + clip(a, b, lo, hi), 0), 0);
+
+// guida continua: si azzera con una pausa di almeno 45 minuti
+function guidaContinua(x) {
+  let cont = 0, prev = null;
+  intervalli(x).forEach(([a, b]) => { if (prev !== null && a - prev >= 45 * MIN) cont = 0; cont += b - a; prev = b; });
+  if (!guidaAttiva(x) && prev !== null && Date.now() - prev >= 45 * MIN) cont = 0;
+  return cont;
+}
+
+// settimana: da lunedì 00:00
+const lunedi = d => { const r = new Date(d.getFullYear(), d.getMonth(), d.getDate()); r.setDate(r.getDate() - (r.getDay() + 6) % 7); return r; };
+const piuGiorni = (d, n) => { const r = new Date(d); r.setDate(r.getDate() + n); return r; };
+const guidaSettimana = lun => guidaTra(lun.getTime(), piuGiorni(lun, 7).getTime());
 
 // riposo prima di ogni impegno + conteggio riposi ridotti tra settimanali
 function analisi() {
@@ -199,7 +305,7 @@ function analisi() {
     const prev = ord[i - 1];
     let r = null, tipo = null;
     if (prev && prev.fine) {
-      r = parseDT(x.inizio) - parseDT(prev.fine);
+      r = T(x.inizio) - T(prev.fine);
       if (r >= 24 * H) { tipo = 'set'; rid = 0; }
       else if (r >= 11 * H) tipo = 'ok';
       else if (r >= 9 * H) { tipo = 'rid'; rid++; }
@@ -212,7 +318,7 @@ function analisi() {
 
 // giorni di calendario toccati da un impegno
 function giorniDi(x) {
-  const a = parseDT(x.inizio), b = x.fine ? parseDT(x.fine) : new Date();
+  const a = new Date(x.inizio), b = x.fine ? new Date(x.fine) : new Date();
   const out = [], d = new Date(a.getFullYear(), a.getMonth(), a.getDate());
   let guard = 0;
   while (d <= b && guard++ < 10) { out.push(isoD(d)); d.setDate(d.getDate() + 1); }
@@ -223,10 +329,18 @@ function giorniDi(x) {
 const oggi = new Date();
 let anno = oggi.getFullYear(), mese = oggi.getMonth();
 let sel = isoD(oggi);
+let settSel = lunedi(oggi);
 const fmtMese = new Intl.DateTimeFormat('it-IT', { month: 'long', year: 'numeric' });
 const fmtGiorno = new Intl.DateTimeFormat('it-IT', { weekday: 'long', day: 'numeric', month: 'long' });
 const fmtDow = new Intl.DateTimeFormat('it-IT', { weekday: 'short' });
 const fmtBreve = new Intl.DateTimeFormat('it-IT', { day: 'numeric', month: 'short' });
+
+const rangeSett = lun => {
+  const dom = piuGiorni(lun, 6);
+  return lun.getMonth() === dom.getMonth()
+    ? `${lun.getDate()}–${dom.getDate()} ${new Intl.DateTimeFormat('it-IT', { month: 'short' }).format(dom)}`
+    : `${fmtBreve.format(lun)} – ${fmtBreve.format(dom)}`;
+};
 
 function badgeRiposo(a) {
   if (!a || a.tipo === null) return '';
@@ -236,62 +350,144 @@ function badgeRiposo(a) {
   if (a.tipo === 'rid') return `<span class="badge b-rid">Riposo ridotto ${t} (${a.ridotti}/3)</span>`;
   return `<span class="badge b-no">Riposo insufficiente ${t}</span>`;
 }
-
-function orariTesto(x) {
-  const a = parseDT(x.inizio), b = parseDT(x.fine);
-  if (!b) return `${hm(a)} → <small>in corso</small>`;
-  const altroGiorno = isoD(a) !== isoD(b);
-  return `${hm(a)} → ${hm(b)}${altroGiorno ? ` <small>(${fmtBreve.format(b)})</small>` : ''}`;
+function badgeGuida(ms) {
+  if (ms > 10 * H) return `<span class="badge b-no">Guida oltre 10h</span>`;
+  if (ms > 9 * H) return `<span class="badge b-rid">Guida estesa a 10h</span>`;
+  return '';
 }
 
+function orariTesto(x) {
+  const a = new Date(x.inizio), b = x.fine ? new Date(x.fine) : null;
+  if (!b) return `${hm(a)} → <small>in corso</small>`;
+  return `${hm(a)} → ${hm(b)}${isoD(a) !== isoD(b) ? ` <small>(${fmtBreve.format(b)})</small>` : ''}`;
+}
+
+/* ---------- stato attuale ---------- */
 function renderStato() {
   const el = $('stato'), c = inCorso(), { ridottiAttuali } = analisi();
   const rid = `<div class="ridotti ${ridottiAttuali >= 3 ? 'troppi' : ''}">Riposi ridotti dall'ultimo settimanale: <b>${ridottiAttuali}/3</b></div>`;
   if (c) {
-    const a = parseDT(c.inizio);
-    el.className = 'stato incorso';
-    el.innerHTML = `<div class="lab">Impegno in corso</div>
+    const a = new Date(c.inizio), ga = guidaAttiva(c);
+    const gTot = guidaImpegno(c), gCont = guidaContinua(c);
+    el.className = 'stato ' + (ga ? 'guida' : 'incorso');
+    el.innerHTML = `<div class="lab">${ga ? 'Alla guida · impegno in corso' : 'Impegno in corso'}</div>
       <div class="tempo">${dur(Date.now() - a)}</div>
       <div class="sub">Iniziato ${fmtBreve.format(a)} alle ${hm(a)}</div>
-      <button class="big stop" id="btnFine">■ Termina impegno ora</button>${rid}`;
-    $('btnFine').onclick = () => { c.fine = isoDT(new Date()); salva(); render(); toast('Impegno terminato'); };
+      <div class="live">
+        <div class="${gTot > 10 * H ? 'over' : gTot > 9 * H ? 'warn' : ''}"><span>Guida oggi</span><b>${dur(gTot)} <small>/ 9h</small></b></div>
+        <div class="${gCont >= 4.5 * H ? 'over' : gCont >= 4 * H ? 'warn' : ''}"><span>Guida continua</span><b>${dur(gCont)} <small>/ 4h30</small></b></div>
+      </div>
+      ${ga ? '<button class="big stop" id="btnGuida">⏸ Ferma guida</button>'
+           : '<button class="big drive" id="btnGuida">▶ Inizia guida</button>'}
+      <button class="big sec" id="btnFine">■ Termina impegno</button>${rid}`;
+    $('btnGuida').onclick = () => {
+      const ora = isoDT(new Date());
+      if (ga) { ga.fine = ora; if (T(ga.fine) <= T(ga.inizio)) c.guide = c.guide.filter(g => g !== ga); toast('Guida fermata'); }
+      else { c.guide.push({ inizio: ora, fine: '' }); toast('Guida iniziata'); }
+      salva(); render();
+    };
+    $('btnFine').onclick = () => {
+      if (!confirm('Terminare l\'impegno adesso?')) return;
+      const ora = isoDT(new Date());
+      if (ga) { ga.fine = ora; if (T(ga.fine) <= T(ga.inizio)) c.guide = c.guide.filter(g => g !== ga); }
+      c.fine = ora; salva(); render(); toast('Impegno terminato');
+    };
   } else {
     const ult = ordinati().filter(x => x.fine).pop();
     el.className = 'stato';
     if (ult) {
-      const f = parseDT(ult.fine), r = Date.now() - f;
+      const f = new Date(ult.fine), r = Date.now() - f;
       const st = r >= 24 * H ? 'riposo settimanale' : r >= 11 * H ? 'riposo regolare raggiunto' : r >= 9 * H ? 'riposo ridotto raggiunto' : `mancano ${dur(9 * H - r)} al riposo ridotto, ${dur(11 * H - r)} al regolare`;
       el.innerHTML = `<div class="lab">In riposo da</div>
         <div class="tempo">${dur(r)}</div>
         <div class="sub">Fine ultimo impegno: ${fmtBreve.format(f)} alle ${hm(f)} · ${st}</div>
-        <button class="big" id="btnInizio">▶ Inizia impegno ora</button>${rid}`;
+        <button class="big" id="btnInizio">▶ Inizia impegno</button>${rid}`;
     } else {
       el.innerHTML = `<div class="lab">Nessun impegno registrato</div>
-        <div class="sub" style="margin-top:6px">Tocca il pulsante quando inizi a lavorare, e "Termina" quando finisci. Puoi anche aggiungere impegni passati a mano.</div>
-        <button class="big" id="btnInizio">▶ Inizia impegno ora</button>`;
+        <div class="sub" style="margin-top:6px">Tocca "Inizia impegno" quando attacchi a lavorare. Poi "Inizia guida" / "Ferma guida" ogni volta che parti e ti fermi, e "Termina impegno" a fine giornata. Gli impegni passati li puoi aggiungere a mano.</div>
+        <button class="big" id="btnInizio">▶ Inizia impegno</button>`;
     }
     $('btnInizio').onclick = () => {
-      dati.push({ id: Date.now(), inizio: isoDT(new Date()), fine: '', nota: '' });
-      salva(); sel = isoD(new Date()); anno = new Date().getFullYear(); mese = new Date().getMonth();
+      const n = new Date();
+      dati.push({ id: Date.now(), inizio: isoDT(n), fine: '', nota: '', guide: [] });
+      salva(); sel = isoD(n); anno = n.getFullYear(); mese = n.getMonth(); settSel = lunedi(n);
       render(); toast('Impegno iniziato');
     };
   }
 }
 
+/* ---------- riepilogo settimanale / bisettimanale ---------- */
+function barra(el, val, max, titolo, nota) {
+  const cl = val > max ? 'over' : val > max * 0.9 ? 'warn' : '';
+  el.className = 'bar ' + cl;
+  el.innerHTML = `<div class="r"><span>${titolo}</span><span><b>${dur(val)}</b> / ${max / H}h</span></div>
+    <div class="t"><i style="width:${Math.min(100, val / max * 100)}%"></i></div>
+    <div class="note">${nota}</div>`;
+}
+
+function renderSettimana() {
+  const lun = settSel, prima = piuGiorni(lun, -7);
+  const corrente = lunedi(new Date()).getTime() === lun.getTime();
+  const gS = guidaSettimana(lun), gP = guidaSettimana(prima);
+  $('sTitolo').textContent = corrente ? 'Questa settimana' : rangeSett(lun);
+  $('sSotto').textContent = corrente ? rangeSett(lun) : (n => n === 1 ? '1 settimana fa' : `${n} settimane fa`)(Math.round((lunedi(new Date()) - lun) / (7 * 24 * H)));
+  barra($('barSett'), gS, 56 * H, 'Guida settimanale', gS <= 56 * H ? `Restano ${dur(56 * H - gS)}` : `Superate di ${dur(gS - 56 * H)}`);
+  const bi = gS + gP, resBi = 90 * H - bi;
+  barra($('barBi'), bi, 90 * H, 'Bisettimanale',
+    `Con la settimana prima (${rangeSett(prima)}: ${dur(gP)}) · ${resBi >= 0 ? 'restano ' + dur(Math.min(resBi, Math.max(0, 56 * H - gS))) + ' guidabili questa settimana' : 'superate di ' + dur(-resBi)}`);
+
+  // guida per giorno
+  const gEl = $('giornate'); gEl.innerHTML = '';
+  for (let i = 0; i < 7; i++) {
+    const d = piuGiorni(lun, i), v = guidaTra(d.getTime(), piuGiorni(d, 1).getTime());
+    const cl = (v > 10 * H ? 'xx' : v > 9 * H ? 'x' : '') + (isoD(d) === isoD(new Date()) ? ' oggi' : '');
+    gEl.insertAdjacentHTML('beforeend', `<div class="${cl}">${fmtDow.format(d).slice(0, 3)} ${d.getDate()}<b>${v ? ore(v) : '–'}</b></div>`);
+  }
+
+  // impegni e giornate estese che iniziano nella settimana
+  const lo = lun.getTime(), hi = piuGiorni(lun, 7).getTime();
+  const imp = dati.filter(x => T(x.inizio) >= lo && T(x.inizio) < hi);
+  const est = imp.filter(x => guidaImpegno(x) > 9 * H).length;
+  $('sMini').innerHTML = `<div><b>${imp.length}</b>impegni</div>
+    <div><b style="color:${est > 2 ? 'var(--danger)' : 'inherit'}">${est}/2</b>giornate da 10h</div>
+    <div><b>${ore(imp.reduce((s, x) => s + ((x.fine ? T(x.fine) : Date.now()) - T(x.inizio)), 0))}</b>ore di impegno</div>`;
+  $('sNext').disabled = corrente; $('sNext').style.opacity = corrente ? .35 : 1;
+
+  // storico
+  const sl = $('storicoList'); sl.innerHTML = '';
+  if (!dati.length) { sl.innerHTML = '<div class="nessuno">Nessun dato ancora.</div>'; return; }
+  const primoLun = lunedi(new Date(ordinati()[0].inizio));
+  let w = lunedi(new Date()), guard = 0;
+  while (w >= primoLun && guard++ < 520) {
+    const lw = new Date(w), g = guidaSettimana(lw), gp = guidaSettimana(piuGiorni(lw, -7));
+    const row = document.createElement('div');
+    row.className = 'sw' + (lw.getTime() === lun.getTime() ? ' cur' : '');
+    row.innerHTML = `<span class="dd">${rangeSett(lw)}</span>
+      <span class="hh"><span class="${g > 56 * H ? 'over' : ''}">${dur(g)}</span><small class="${g + gp > 90 * H ? 'over' : ''}">bisett. ${dur(g + gp)}</small></span>`;
+    row.onclick = () => { settSel = lw; renderSettimana(); $('sett').scrollIntoView({ behavior: 'smooth' }); };
+    sl.appendChild(row);
+    w = piuGiorni(w, -7);
+  }
+}
+$('sPrev').onclick = () => { settSel = piuGiorni(settSel, -7); renderSettimana(); };
+$('sNext').onclick = () => { if (settSel < lunedi(new Date())) { settSel = piuGiorni(settSel, 7); renderSettimana(); } };
+
+/* ---------- mese / calendario / giorno ---------- */
 function render() {
   renderStato();
+  renderSettimana();
   const { info } = analisi();
   const prefisso = `${anno}-${pad(mese + 1)}-`;
   const ord = ordinati();
 
-  // impegni per giorno (un impegno può toccare 2 giorni)
   const perGiorno = {};
   ord.forEach(x => giorniDi(x).forEach(g => (perGiorno[g] = perGiorno[g] || []).push(x)));
 
-  // conteggio mese: ogni impegno conta una volta, nel giorno in cui inizia
   const delMese = ord.filter(x => x.inizio.startsWith(prefisso));
+  const m0 = new Date(anno, mese, 1).getTime(), m1 = new Date(anno, mese + 1, 1).getTime();
   $('titolo').textContent = fmtMese.format(new Date(anno, mese, 1));
   $('sTot').textContent = delMese.length;
+  $('sGuida').textContent = ore(guidaTra(m0, m1));
   $('sDoppi').textContent = Object.keys(perGiorno).filter(g => g.startsWith(prefisso) && perGiorno[g].length >= 2).length;
   $('sRid').textContent = delMese.filter(x => info[x.id].tipo === 'rid').length;
 
@@ -315,13 +511,17 @@ function render() {
   $('gConta').textContent = items.length === 0 ? 'Nessun impegno' : items.length === 1 ? '1 impegno' : `${items.length} impegni in questo giorno`;
   const lista = $('lista'); lista.innerHTML = '';
   items.forEach(x => {
-    const a = parseDT(x.inizio), b = x.fine ? parseDT(x.fine) : new Date();
+    const a = new Date(x.inizio), b = x.fine ? new Date(x.fine) : new Date();
+    const g = guidaImpegno(x);
+    const periodi = x.guide.slice().sort((p, q) => p.inizio.localeCompare(q.inizio))
+      .map(p => `${hm(new Date(p.inizio))}–${p.fine ? hm(new Date(p.fine)) : 'ora'}`).join(' · ');
     const div = document.createElement('div'); div.className = 'imp';
     div.innerHTML = `<div class="info">
         <div class="orari">${orariTesto(x)}</div>
-        <div class="det">Durata ${dur(b - a)}${isoD(a) !== sel ? ` · iniziato il ${fmtBreve.format(a)}` : ''}</div>
+        <div class="det">Impegno ${dur(b - a)} · Guida <b>${dur(g)}</b>${isoD(a) !== sel ? ` · iniziato il ${fmtBreve.format(a)}` : ''}</div>
+        ${periodi ? `<div class="gl">🚚 ${periodi}</div>` : ''}
         ${x.nota ? `<div class="nota">${esc(x.nota)}</div>` : ''}
-        <div>${x.fine ? '' : '<span class="badge b-run">IN CORSO</span>'}${badgeRiposo(info[x.id])}</div>
+        <div>${x.fine ? '' : '<span class="badge b-run">IN CORSO</span>'}${guidaAttiva(x) ? '<span class="badge b-drv">ALLA GUIDA</span>' : ''}${badgeGuida(g)}${badgeRiposo(info[x.id])}</div>
       </div>
       <button class="ic" aria-label="Modifica">✎</button>
       <button class="ic del" aria-label="Elimina">✕</button>`;
@@ -342,35 +542,97 @@ function render() {
     const div = document.createElement('div'); div.className = 'mg';
     div.innerHTML = `<div class="d">${fmtDow.format(dt)}<b>${dt.getDate()}</b></div><div class="v"></div>`;
     const v = div.querySelector('.v');
-    its.forEach(x => { const r = document.createElement('div'); r.innerHTML = orariTesto(x) + (x.nota ? ` · ${esc(x.nota)}` : ''); v.appendChild(r); });
+    its.forEach(x => {
+      const r = document.createElement('div');
+      r.innerHTML = orariTesto(x) + ` <span class="gd">· guida ${ore(guidaImpegno(x))}</span>` + (x.nota ? ` · ${esc(x.nota)}` : '');
+      v.appendChild(r);
+    });
     if (its.length >= 2) v.firstChild.insertAdjacentHTML('beforeend', `<span class="tag">${its.length}</span>`);
     div.onclick = () => { sel = g; render(); $('gTitolo').scrollIntoView({ behavior: 'smooth', block: 'center' }); };
     ml.appendChild(div);
   });
 }
 
-// form aggiungi / modifica
+/* ---------- form aggiungi / modifica ---------- */
 let inModifica = null;
+// le righe di guida hanno solo l'ora: la data si ricava dall'inizio dell'impegno
+function oraDopo(ora, rif) {
+  // prima data-ora con quell'orario che non sia prima di rif
+  if (!ora || !rif) return '';
+  let d = rif.slice(0, 10) + 'T' + ora;
+  if (d < rif) d = isoDT(piuGiorni(new Date(d), 1));
+  return d;
+}
+function rigaGuida(ini = '', fin = '') {
+  const r = document.createElement('div'); r.className = 'grow';
+  r.innerHTML = `<span>da</span><input type="time" class="gi" aria-label="Guida da">
+    <span>a</span><input type="time" class="gf" aria-label="Guida a">
+    <button type="button" aria-label="Rimuovi">✕</button><small></small>`;
+  r.querySelector('.gi').value = ini ? ini.slice(11, 16) : '';
+  r.querySelector('.gf').value = fin ? fin.slice(11, 16) : '';
+  r.querySelector('button').onclick = () => { r.remove(); totForm(); };
+  r.querySelectorAll('input').forEach(i => i.addEventListener('change', totForm));
+  $('fGuide').appendChild(r);
+}
+function guideForm() {
+  let rif = $('fInizio').value;
+  return [...$('fGuide').querySelectorAll('.grow')].map(r => {
+    const gi = r.querySelector('.gi').value, gf = r.querySelector('.gf').value;
+    if (!gi && !gf) return null;
+    const inizio = oraDopo(gi, rif), fine = gf ? oraDopo(gf, inizio || rif) : '';
+    if (fine || inizio) rif = fine || inizio;
+    const nota = r.querySelector('small');
+    nota.textContent = inizio && fine && inizio.slice(0, 10) !== fine.slice(0, 10) ? 'finisce il giorno dopo' : '';
+    return { inizio, fine };
+  }).filter(Boolean);
+}
+function totForm() {
+  const t = guideForm().filter(g => g.inizio && g.fine && g.fine > g.inizio).reduce((s, g) => s + T(g.fine) - T(g.inizio), 0);
+  $('fGTot').innerHTML = t ? `Totale guida: <b>${dur(t)}</b>` : '';
+}
 function apriForm(x) {
   inModifica = x || null;
   $('dTitolo').textContent = x ? 'Modifica impegno' : 'Nuovo impegno';
   $('fInizio').value = x ? x.inizio : `${sel}T06:00`;
   $('fFine').value = x ? x.fine : '';
   $('fNota').value = x ? x.nota : '';
+  $('fGuide').innerHTML = '';
+  (x ? x.guide.slice().sort((p, q) => p.inizio.localeCompare(q.inizio)) : []).forEach(g => rigaGuida(g.inizio, g.fine));
   $('fErr').textContent = '';
+  totForm();
   $('dlg').showModal();
 }
+$('fAddG').onclick = () => {
+  const gg = guideForm(), ult = gg[gg.length - 1];
+  let ini = $('fInizio').value || `${sel}T06:00`;
+  if (ult && ult.fine) ini = isoDT(new Date(T(ult.fine) + 45 * MIN));
+  else if (ult) ini = '';
+  rigaGuida(ini, '');
+  const rs = $('fGuide').querySelectorAll('.gf'); rs[rs.length - 1].focus();
+};
 $('addman').onclick = () => apriForm(null);
 $('fAnnulla').onclick = () => $('dlg').close();
 $('form').addEventListener('submit', e => {
+  const err = t => { e.preventDefault(); $('fErr').textContent = t; };
   const ini = $('fInizio').value, fin = $('fFine').value;
-  if (!ini) { e.preventDefault(); $('fErr').textContent = "Inserisci l'inizio."; return; }
-  if (fin && fin <= ini) { e.preventDefault(); $('fErr').textContent = "La fine deve essere dopo l'inizio."; return; }
-  if (!fin && dati.some(y => !y.fine && y !== inModifica)) { e.preventDefault(); $('fErr').textContent = "C'è già un impegno in corso: inserisci la fine."; return; }
-  const sovrapp = dati.find(y => y !== inModifica && y.inizio < (fin || '9999') && (y.fine || '9999') > ini);
-  if (sovrapp) { e.preventDefault(); $('fErr').textContent = 'Si sovrappone a un altro impegno.'; return; }
-  if (inModifica) Object.assign(inModifica, { inizio: ini, fine: fin, nota: $('fNota').value.trim() });
-  else dati.push({ id: Date.now(), inizio: ini, fine: fin, nota: $('fNota').value.trim() });
+  if (!ini) return err("Inserisci l'inizio dell'impegno.");
+  if (fin && fin <= ini) return err("La fine deve essere dopo l'inizio.");
+  if (!fin && dati.some(y => !y.fine && y !== inModifica)) return err("C'è già un impegno in corso: inserisci la fine.");
+  if (dati.find(y => y !== inModifica && y.inizio < (fin || '9999') && (y.fine || '9999') > ini)) return err('Si sovrappone a un altro impegno.');
+
+  const guide = guideForm();
+  for (let i = 0; i < guide.length; i++) {
+    const g = guide[i];
+    if (!g.inizio) return err('Ogni periodo di guida deve avere l\'inizio.');
+    if (!g.fine && (fin || i < guide.length - 1)) return err('Manca la fine di un periodo di guida.');
+    if (g.fine && g.fine <= g.inizio) return err('Un periodo di guida finisce prima di iniziare.');
+    if (g.inizio < ini || (fin && g.fine > fin)) return err('Controlla gli orari di guida: devono stare dentro l\'impegno e in ordine.');
+    if (i && guide[i - 1].fine > g.inizio) return err('Due periodi di guida si sovrappongono.');
+  }
+
+  const nota = $('fNota').value.trim();
+  if (inModifica) Object.assign(inModifica, { inizio: ini, fine: fin, nota, guide });
+  else dati.push({ id: Date.now(), inizio: ini, fine: fin, nota, guide });
   salva(); sel = ini.slice(0, 10); anno = +ini.slice(0, 4); mese = +ini.slice(5, 7) - 1;
   render(); toast('Salvato');
 });
@@ -384,7 +646,7 @@ function cambiaMese(delta) {
 $('prev').onclick = () => cambiaMese(-1);
 $('next').onclick = () => cambiaMese(1);
 
-// backup
+/* ---------- backup ---------- */
 $('esporta').onclick = () => {
   const blob = new Blob([JSON.stringify(dati, null, 1)], { type: 'application/json' });
   const a = document.createElement('a');
@@ -398,6 +660,7 @@ $('file').onchange = async e => {
     const arr = JSON.parse(await f.text());
     if (!Array.isArray(arr) || !arr.every(x => x && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(x.inizio))) throw 0;
     if (!confirm(`Ripristinare ${arr.length} impegni? Quelli attuali verranno sostituiti.`)) return;
+    arr.forEach(x => { if (!Array.isArray(x.guide)) x.guide = []; });
     dati = arr; salva(); render(); toast('Backup ripristinato');
   } catch (err) { toast('File non valido'); }
   e.target.value = '';
@@ -407,7 +670,7 @@ let tt;
 function toast(t) { const el = $('toast'); el.textContent = t; el.classList.add('on'); clearTimeout(tt); tt = setTimeout(() => el.classList.remove('on'), 1600); }
 
 render();
-setInterval(renderStato, 30000);
+setInterval(() => { renderStato(); if (inCorso()) renderSettimana(); }, 30000);
 document.addEventListener('visibilitychange', () => { if (!document.hidden) render(); });
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
 </script>
