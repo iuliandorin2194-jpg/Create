@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b1a2e">
+<title>Impegni</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+  :root {
+    --bg:#0b1a2e; --card:#13284a; --card2:#1a3360; --line:#24406e;
+    --text:#eef3fa; --muted:#93a7c4; --accent:#4c8dff; --accent2:#2f6fe0;
+    --warn:#ffb648; --danger:#ff6b6b;
+  }
+  * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body { margin:0; background:var(--bg); color:var(--text);
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; }
+  main { max-width:560px; margin:0 auto; padding:16px 16px 48px; }
+  button, input { font:inherit; color:inherit; }
+  button { cursor:pointer; border:0; }
+
+  .mese { display:flex; align-items:center; justify-content:space-between; margin:4px 0 14px; }
+  .mese h1 { margin:0; font-size:22px; text-transform:capitalize; }
+  .nav { width:44px; height:44px; border-radius:12px; background:var(--card); font-size:22px; }
+
+  .stats { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:14px; }
+  .stat { background:var(--card); border-radius:14px; padding:12px 10px; text-align:center; }
+  .stat b { display:block; font-size:28px; line-height:1.1; }
+  .stat span { font-size:12px; color:var(--muted); }
+  .stat.main b { color:var(--accent); }
+  .stat.doppi b { color:var(--warn); }
+
+  .cal { background:var(--card); border-radius:16px; padding:10px; margin-bottom:14px; }
+  .dow, .grid { display:grid; grid-template-columns:repeat(7,1fr); gap:4px; }
+  .dow div { text-align:center; font-size:11px; color:var(--muted); padding:4px 0; }
+  .g { position:relative; aspect-ratio:1; border-radius:10px; background:transparent;
+       display:flex; flex-direction:column; align-items:center; justify-content:center; font-size:15px; }
+  .g.vuoto { visibility:hidden; }
+  .g.ha { background:var(--card2); }
+  .g.oggi { box-shadow:inset 0 0 0 2px var(--accent); }
+  .g.sel { background:var(--accent); color:#fff; }
+  .g .n { display:flex; gap:3px; margin-top:3px; height:6px; }
+  .g .n i { width:6px; height:6px; border-radius:50%; background:var(--accent); }
+  .g.sel .n i { background:#fff; }
+  .g .n i.w { background:var(--warn); }
+  .g .piu { font-size:9px; line-height:6px; color:var(--warn); font-weight:700; }
+
+  .giorno { background:var(--card); border-radius:16px; padding:14px; margin-bottom:14px; }
+  .giorno h2 { margin:0 0 10px; font-size:17px; text-transform:capitalize; }
+  .riga { display:flex; gap:8px; margin-bottom:8px; }
+  .riga input { background:var(--bg); border:1px solid var(--line); border-radius:10px; padding:10px; min-width:0; }
+  .riga input[type=time] { width:110px; flex:none; color-scheme:dark; }
+  .riga input[type=text] { flex:1; }
+  .add { width:100%; padding:14px; border-radius:12px; background:var(--accent); color:#fff; font-weight:600; font-size:16px; }
+  .add:active { background:var(--accent2); }
+
+  ul.lista { list-style:none; margin:12px 0 0; padding:0; }
+  ul.lista li { display:flex; align-items:center; gap:10px; padding:10px 0; border-top:1px solid var(--line); }
+  ul.lista .ora { width:48px; color:var(--accent); font-variant-numeric:tabular-nums; font-size:14px; }
+  ul.lista .nota { flex:1; overflow-wrap:anywhere; }
+  ul.lista .nota.sn { color:var(--muted); font-style:italic; }
+  .del { width:36px; height:36px; border-radius:10px; background:transparent; color:var(--danger); font-size:18px; }
+  .nessuno { color:var(--muted); font-size:14px; margin-top:10px; }
+
+  .sez { font-size:13px; color:var(--muted); text-transform:uppercase; letter-spacing:.05em; margin:20px 0 8px; }
+  .mlist { background:var(--card); border-radius:16px; padding:4px 14px; }
+  .mg { display:flex; gap:12px; padding:10px 0; border-top:1px solid var(--line); }
+  .mg:first-child { border-top:0; }
+  .mg .d { width:64px; flex:none; font-size:14px; color:var(--muted); text-transform:capitalize; }
+  .mg .d b { display:block; color:var(--text); font-size:16px; }
+  .mg .v { flex:1; font-size:14px; }
+  .mg .v div { padding:2px 0; }
+  .mg .tag { display:inline-block; font-size:11px; padding:2px 6px; border-radius:6px; background:var(--warn); color:#1b1200; font-weight:700; margin-left:4px; }
+
+  .backup { display:flex; gap:8px; margin-top:24px; }
+  .backup button { flex:1; padding:12px; border-radius:12px; background:var(--card); color:var(--muted); font-size:14px; }
+  .home { display:block; text-align:center; margin-top:18px; color:var(--muted); font-size:13px; }
+  .toast { position:fixed; left:50%; bottom:24px; transform:translateX(-50%); background:#fff; color:#0b1a2e;
+    padding:10px 16px; border-radius:10px; font-size:14px; opacity:0; transition:opacity .2s; pointer-events:none; }
+  .toast.on { opacity:1; }
+</style>
+</head>
+<body>
+<main>
+  <div class="mese">
+    <button class="nav" id="prev" aria-label="Mese precedente">‹</button>
+    <h1 id="titolo"></h1>
+    <button class="nav" id="next" aria-label="Mese successivo">›</button>
+  </div>
+
+  <div class="stats">
+    <div class="stat main"><b id="sTot">0</b><span>impegni</span></div>
+    <div class="stat"><b id="sGiorni">0</b><span>giorni occupati</span></div>
+    <div class="stat doppi"><b id="sDoppi">0</b><span>giorni con 2+</span></div>
+  </div>
+
+  <div class="cal">
+    <div class="dow"><div>Lun</div><div>Mar</div><div>Mer</div><div>Gio</div><div>Ven</div><div>Sab</div><div>Dom</div></div>
+    <div class="grid" id="grid"></div>
+  </div>
+
+  <section class="giorno">
+    <h2 id="gTitolo"></h2>
+    <div class="riga">
+      <input type="time" id="ora" aria-label="Ora (facoltativa)">
+      <input type="text" id="nota" placeholder="Descrizione (facoltativa)" maxlength="120">
+    </div>
+    <button class="add" id="add">+ Aggiungi impegno</button>
+    <ul class="lista" id="lista"></ul>
+  </section>
+
+  <div class="sez">Tutti gli impegni del mese</div>
+  <div class="mlist" id="mlist"></div>
+
+  <div class="backup">
+    <button id="esporta">Salva backup</button>
+    <button id="importa">Ripristina backup</button>
+    <input type="file" id="file" accept="application/json,.json" hidden>
+  </div>
+  <a class="home" href="../">← Tutte le app</a>
+</main>
+<div class="toast" id="toast"></div>
+
+<script>
+const KEY = 'impegni-v1';
+const $ = id => document.getElementById(id);
+const pad = n => String(n).padStart(2, '0');
+const iso = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+
+let dati = [];
+try { dati = JSON.parse(localStorage.getItem(KEY)) || []; } catch (e) { dati = []; }
+const salva = () => { try { localStorage.setItem(KEY, JSON.stringify(dati)); } catch (e) { toast('Impossibile salvare'); } };
+
+const oggi = new Date();
+let anno = oggi.getFullYear(), mese = oggi.getMonth();
+let sel = iso(oggi);
+
+const fmtMese = new Intl.DateTimeFormat('it-IT', { month: 'long', year: 'numeric' });
+const fmtGiorno = new Intl.DateTimeFormat('it-IT', { weekday: 'long', day: 'numeric', month: 'long' });
+const fmtDow = new Intl.DateTimeFormat('it-IT', { weekday: 'short' });
+const parse = s => { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d); };
+
+function delGiorno(g) {
+  return dati.filter(x => x.data === g).sort((a, b) => (a.ora || '99').localeCompare(b.ora || '99') || a.id - b.id);
+}
+
+function render() {
+  const prefisso = `${anno}-${pad(mese + 1)}-`;
+  const delMese = dati.filter(x => x.data.startsWith(prefisso));
+  const perGiorno = {};
+  delMese.forEach(x => perGiorno[x.data] = (perGiorno[x.data] || 0) + 1);
+
+  $('titolo').textContent = fmtMese.format(new Date(anno, mese, 1));
+  $('sTot').textContent = delMese.length;
+  $('sGiorni').textContent = Object.keys(perGiorno).length;
+  $('sDoppi').textContent = Object.values(perGiorno).filter(n => n >= 2).length;
+
+  // calendario
+  const grid = $('grid'); grid.innerHTML = '';
+  const primo = (new Date(anno, mese, 1).getDay() + 6) % 7;
+  const giorni = new Date(anno, mese + 1, 0).getDate();
+  for (let i = 0; i < primo; i++) grid.insertAdjacentHTML('beforeend', '<div class="g vuoto"></div>');
+  for (let d = 1; d <= giorni; d++) {
+    const g = prefisso + pad(d), n = perGiorno[g] || 0;
+    const b = document.createElement('button');
+    b.className = 'g' + (n ? ' ha' : '') + (g === iso(oggi) ? ' oggi' : '') + (g === sel ? ' sel' : '');
+    let pallini = '';
+    for (let i = 0; i < Math.min(n, 3); i++) pallini += `<i class="${n >= 2 ? 'w' : ''}"></i>`;
+    if (n > 3) pallini = `<i class="w"></i><i class="w"></i><span class="piu">+${n - 2}</span>`;
+    b.innerHTML = `${d}<span class="n">${pallini}</span>`;
+    b.onclick = () => { sel = g; render(); };
+    grid.appendChild(b);
+  }
+
+  // giorno selezionato
+  $('gTitolo').textContent = fmtGiorno.format(parse(sel));
+  const lista = $('lista'); lista.innerHTML = '';
+  const items = delGiorno(sel);
+  if (!items.length) lista.innerHTML = '<li class="nessuno" style="border:0">Nessun impegno in questo giorno.</li>';
+  items.forEach(x => {
+    const li = document.createElement('li');
+    li.innerHTML = `<span class="ora">${x.ora || '—'}</span><span class="nota ${x.nota ? '' : 'sn'}"></span><button class="del" aria-label="Elimina">✕</button>`;
+    li.querySelector('.nota').textContent = x.nota || 'Impegno';
+    li.querySelector('.del').onclick = () => {
+      if (!confirm('Eliminare questo impegno?')) return;
+      dati = dati.filter(y => y.id !== x.id); salva(); render();
+    };
+    lista.appendChild(li);
+  });
+
+  // elenco del mese
+  const ml = $('mlist'); ml.innerHTML = '';
+  const date = Object.keys(perGiorno).sort();
+  if (!date.length) ml.innerHTML = '<div class="nessuno" style="padding:10px 0">Ancora nessun impegno questo mese.</div>';
+  date.forEach(g => {
+    const its = delGiorno(g), dt = parse(g);
+    const div = document.createElement('div'); div.className = 'mg';
+    div.innerHTML = `<div class="d">${fmtDow.format(dt)}<b>${dt.getDate()}</b></div><div class="v"></div>`;
+    const v = div.querySelector('.v');
+    its.forEach(x => { const r = document.createElement('div'); r.textContent = (x.ora ? x.ora + '  ' : '') + (x.nota || 'Impegno'); v.appendChild(r); });
+    if (its.length >= 2) v.firstChild.insertAdjacentHTML('beforeend', `<span class="tag">${its.length}</span>`);
+    div.onclick = () => { sel = g; render(); scrollTo({ top: 0, behavior: 'smooth' }); };
+    ml.appendChild(div);
+  });
+}
+
+$('add').onclick = () => {
+  dati.push({ id: Date.now(), data: sel, ora: $('ora').value, nota: $('nota').value.trim() });
+  salva(); $('ora').value = ''; $('nota').value = '';
+  render(); toast('Impegno aggiunto');
+};
+$('nota').addEventListener('keydown', e => { if (e.key === 'Enter') $('add').click(); });
+
+function cambiaMese(delta) {
+  mese += delta;
+  if (mese < 0) { mese = 11; anno--; } else if (mese > 11) { mese = 0; anno++; }
+  sel = (anno === oggi.getFullYear() && mese === oggi.getMonth()) ? iso(oggi) : `${anno}-${pad(mese + 1)}-01`;
+  render();
+}
+$('prev').onclick = () => cambiaMese(-1);
+$('next').onclick = () => cambiaMese(1);
+
+// backup
+$('esporta').onclick = () => {
+  const blob = new Blob([JSON.stringify(dati, null, 1)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = `impegni-backup-${iso(new Date())}.json`;
+  a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+};
+$('importa').onclick = () => $('file').click();
+$('file').onchange = async e => {
+  const f = e.target.files[0]; if (!f) return;
+  try {
+    const arr = JSON.parse(await f.text());
+    if (!Array.isArray(arr) || !arr.every(x => x && /^\d{4}-\d{2}-\d{2}$/.test(x.data))) throw 0;
+    if (!confirm(`Ripristinare ${arr.length} impegni? Quelli attuali verranno sostituiti.`)) return;
+    dati = arr; salva(); render(); toast('Backup ripristinato');
+  } catch (err) { toast('File non valido'); }
+  e.target.value = '';
+};
+
+let tt;
+function toast(t) { const el = $('toast'); el.textContent = t; el.classList.add('on'); clearTimeout(tt); tt = setTimeout(() => el.classList.remove('on'), 1600); }
+
+render();
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+</script>
+</body>
+</html>
