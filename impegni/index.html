@@ -88,6 +88,14 @@
   .stat.main b { color:var(--accent); }
   .stat.doppi b { color:var(--warn); }
   .stat.drv b { color:var(--drive); }
+  .stat.soldi { grid-column:1 / -1; }
+  .stat.soldi b { color:var(--ok); }
+  .euro { color:var(--ok); font-weight:600; }
+  .sett .soldiSett { font-size:14px; color:var(--muted); margin-top:10px; text-align:center; }
+  .sett .soldiSett b { color:var(--ok); font-size:16px; }
+  .euroIn { display:flex; align-items:center; gap:8px; }
+  .euroIn span { font-size:20px; color:var(--ok); font-weight:700; }
+  .euroIn input { width:140px; font-size:20px; font-weight:700; color:var(--ok); }
 
   .cal { background:var(--card); border-radius:16px; padding:10px; margin-bottom:14px; }
   .dow, .grid { display:grid; grid-template-columns:repeat(7,1fr); gap:4px; }
@@ -180,6 +188,7 @@
     <div class="bar" id="barBi"></div>
     <div class="giornate" id="giornate"></div>
     <div class="mini" id="sMini"></div>
+    <div class="soldiSett" id="sSoldiSett"></div>
     <div class="manca" id="sManca"></div>
     <details class="storico" id="storico">
       <summary>Storico settimane ▾</summary>
@@ -198,6 +207,7 @@
     <div class="stat drv"><b id="sGuida">0h</b><span>ore di guida nel mese</span></div>
     <div class="stat doppi"><b id="sDoppi">0</b><span>giorni con 2 impegni</span></div>
     <div class="stat"><b id="sRid">0</b><span>riposi ridotti</span></div>
+    <div class="stat soldi nascosto" id="cSoldi"><b id="sSoldi">€ 0</b><span id="sSoldiLab">importo del mese</span></div>
   </div>
 
   <div class="cal">
@@ -247,6 +257,10 @@
       </div>
       <div class="hint">Se non le hai sotto mano lasciale vuote: le aggiungi dopo con ✎.</div>
     </div>
+    <div class="campo" id="cImporto">
+      <label for="fImporto">Importo della giornata (facoltativo)</label>
+      <div class="euroIn"><span>€</span><input type="text" id="fImporto" inputmode="decimal" placeholder="0,00" maxlength="10"></div>
+    </div>
     <div class="campo" id="cNota">
       <label for="fNota">Nota (facoltativa)</label>
       <input type="text" id="fNota" maxlength="120" placeholder="Es. carico Verona, scarico Bologna">
@@ -273,7 +287,11 @@ const hm = d => `${pad(d.getHours())}:${pad(d.getMinutes())}`;
 const dur = ms => { const m = Math.max(0, Math.round(ms / MIN)); return `${Math.floor(m / 60)}h ${pad(m % 60)}m`; };
 const ore = ms => { const m = Math.max(0, Math.round(ms / MIN)); return m % 60 ? `${Math.floor(m / 60)}h${pad(m % 60)}` : `${m / 60}h`; };
 const esc = s => s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-const DIMENTICATO = 16 * H; // oltre questo, un impegno ancora aperto è probabilmente dimenticato
+const DIMENTICATO = 16 * H;
+const fmtEuro = new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' });
+const euro = v => fmtEuro.format(v);
+const haImporto = x => typeof x.importo === 'number';
+const sommaImporti = arr => arr.reduce((s, x) => s + (haImporto(x) ? x.importo : 0), 0); // oltre questo, un impegno ancora aperto è probabilmente dimenticato
 
 // dati: { id, inizio:'YYYY-MM-DDTHH:MM', fine:'...'|'', nota, guida: minuti | null }
 let dati = [];
@@ -286,6 +304,7 @@ function normalizza(x) {
   }
   delete x.guide;
   if (typeof x.nota !== 'string') x.nota = '';
+  if (!haImporto(x)) x.importo = null;
   return x;
 }
 dati.forEach(normalizza);
@@ -447,6 +466,8 @@ function renderSettimana() {
   $('sMini').innerHTML = `<div><b>${imp.length}</b>impegni</div>
     <div><b style="color:${est > 2 ? 'var(--danger)' : 'inherit'}">${est}/2</b>giornate da 10h</div>
     <div><b>${ore(oreImp)}</b>ore di impegno</div>`;
+  const conImp = imp.filter(haImporto);
+  $('sSoldiSett').innerHTML = conImp.length ? `Importo della settimana: <b>${euro(sommaImporti(imp))}</b>${conImp.length < imp.filter(x => x.fine).length ? ` <small>(${conImp.length} di ${imp.length} impegni)</small>` : ''}` : '';
   const mancanti = imp.filter(senzaGuida).length;
   $('sManca').textContent = mancanti ? `⚠ ${mancanti === 1 ? '1 impegno' : mancanti + ' impegni'} senza ore di guida: il totale non è completo.` : '';
   $('sNext').disabled = corrente; $('sNext').style.opacity = corrente ? .35 : 1;
@@ -485,6 +506,10 @@ function render() {
   $('titolo').textContent = fmtMese.format(new Date(anno, mese, 1));
   $('sTot').textContent = delMese.length;
   $('sGuida').textContent = ore(delMese.reduce((s, x) => s + guidaMs(x), 0));
+  const conImpM = delMese.filter(haImporto);
+  mostra('cSoldi', conImpM.length > 0);
+  $('sSoldi').textContent = euro(sommaImporti(delMese));
+  $('sSoldiLab').textContent = conImpM.length < delMese.length ? `importo del mese (${conImpM.length} impegni su ${delMese.length} hanno l'importo)` : 'importo del mese';
   $('sDoppi').textContent = Object.keys(perGiorno).filter(g => g.startsWith(prefisso) && perGiorno[g].length >= 2).length;
   $('sRid').textContent = delMese.filter(x => info[x.id].tipo === 'rid').length;
 
@@ -511,7 +536,7 @@ function render() {
     const gTxt = senzaGuida(x) ? '' : x.guida === null ? ' · Guida: a fine lavoro' : ` · Guida <b>${dur(guidaMs(x))}</b>`;
     div.innerHTML = `<div class="info">
         <div class="orari">${orariTesto(x)}</div>
-        <div class="det">Impegno ${dur(b - a)}${gTxt}${isoD(a) !== sel ? ` · iniziato il ${fmtBreve.format(a)}` : ''}</div>
+        <div class="det">Impegno ${dur(b - a)}${gTxt}${haImporto(x) ? ` · <span class="euro">${euro(x.importo)}</span>` : ''}${isoD(a) !== sel ? ` · iniziato il ${fmtBreve.format(a)}` : ''}</div>
         ${x.nota ? `<div class="nota">${esc(x.nota)}</div>` : ''}
         <div>${x.fine ? '' : '<span class="badge b-run">IN CORSO</span>'}${senzaGuida(x) ? '<span class="badge b-miss">+ Inserisci ore di guida</span>' : ''}${badgeGuida(x)}${badgeRiposo(info[x.id])}</div>
       </div>
@@ -537,7 +562,7 @@ function render() {
     its.forEach(x => {
       const r = document.createElement('div');
       const gTxt = senzaGuida(x) ? ' <span class="gm">· guida ?</span>' : x.guida === null ? '' : ` <span class="gd">· guida ${ore(guidaMs(x))}</span>`;
-      r.innerHTML = orariTesto(x) + gTxt + (x.nota ? ` · ${esc(x.nota)}` : '');
+      r.innerHTML = orariTesto(x) + gTxt + (haImporto(x) ? ` <span class="euro" style="font-size:12px">· ${euro(x.importo)}</span>` : '') + (x.nota ? ` · ${esc(x.nota)}` : '');
       v.appendChild(r);
     });
     if (its.length >= 2) v.firstChild.insertAdjacentHTML('beforeend', `<span class="tag">${its.length}</span>`);
@@ -566,6 +591,7 @@ function apriForm(x, m) {
   mostra('cFine', m !== 'inizio' && m !== 'guida');
   mostra('cGuida', m !== 'inizio');
   mostra('cNota', m !== 'guida');
+  mostra('cImporto', m !== 'inizio' && m !== 'guida');
   mostra('cRiapri', m === 'tutto');
 
   $('fInizio').value = x ? x.inizio : m === 'nuovo' ? `${sel}T06:00` : ora;
@@ -575,6 +601,7 @@ function apriForm(x, m) {
   $('fGh').value = g != null ? Math.floor(g / 60) : '';
   $('fGm').value = g != null ? pad(g % 60) : '';
   $('fNota').value = x ? x.nota : '';
+  $('fImporto').value = x && haImporto(x) ? String(x.importo.toFixed(2)).replace('.', ',') : '';
   $('fErr').textContent = m === 'fine' && x && T(ora) - T(x.inizio) > DIMENTICATO ? "L'impegno è aperto da più di 16 ore: inserisci l'ora in cui hai finito davvero." : '';
   $('fOk').textContent = m === 'inizio' ? 'Inizia' : m === 'fine' ? 'Termina' : 'Salva';
   $('dlg').showModal();
@@ -602,9 +629,20 @@ $('form').addEventListener('submit', e => {
     guida = h * 60 + m;
     if (fin && guida * MIN > T(fin) - T(ini)) return err('Le ore di guida sono più lunghe dell\'impegno: controlla.');
   }
+  let importo = inModifica && haImporto(inModifica) ? inModifica.importo : null;
+  if (!$('cImporto').classList.contains('nascosto')) {
+    const t = $('fImporto').value.trim().replace(/[€\s]/g, '');
+    if (t === '') importo = null;
+    else {
+      // accetta 120 / 120,50 / 120.50 / 1.200,50
+      const n = Number(/,/.test(t) ? t.replace(/\./g, '').replace(',', '.') : t);
+      if (!isFinite(n) || n < 0) return err('Importo non valido: scrivi per esempio 120 oppure 120,50.');
+      importo = Math.round(n * 100) / 100;
+    }
+  }
   const nota = $('fNota').value.trim();
-  if (inModifica) Object.assign(inModifica, { inizio: ini, fine: fin, nota, guida });
-  else dati.push({ id: Date.now(), inizio: ini, fine: fin, nota, guida });
+  if (inModifica) Object.assign(inModifica, { inizio: ini, fine: fin, nota, guida, importo });
+  else dati.push({ id: Date.now(), inizio: ini, fine: fin, nota, guida, importo });
   salva();
   sel = ini.slice(0, 10); anno = +ini.slice(0, 4); mese = +ini.slice(5, 7) - 1; settSel = lunedi(new Date(ini));
   render();
