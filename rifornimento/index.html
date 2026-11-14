@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Rifornimento">
-<meta name="app-version" content="1.6 · 14/11/2026">
+<meta name="app-version" content="1.7 · 14/11/2026">
 <title>Rifornimento – pasti a macro per chi viaggia</title>
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -1163,6 +1163,94 @@ function vIngForm(){
   save();RV.ing=null;vRicette();};
 }
 
+/* ===== FOTO DELL'ETICHETTA ===== */
+// Lettura del testo sul telefono con Tesseract (libreria gratuita): la foto non va su nessun server.
+const OCR_CFG=Object.assign({lib:"https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js",worker:"https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/worker.min.js",
+ core:"https://cdn.jsdelivr.net/npm/tesseract.js-core@5.1.1",lang:"https://cdn.jsdelivr.net/npm/@tesseract.js-data/ita@1.0.0/4.0.0"},window.OCR_CFG||{});
+let OC=null,ocrWorker=null;
+function loadScript(src){return new Promise((ok,ko)=>{if(window.Tesseract)return ok();const sc=document.createElement("script");sc.src=src;sc.onload=ok;sc.onerror=()=>ko(new Error("load"));document.head.appendChild(sc);});}
+function prepImage(file){return new Promise((ok,ko)=>{const url=URL.createObjectURL(file),im=new Image();
+ im.onload=()=>{const sc=Math.min(1,1800/Math.max(im.width,im.height)),c=document.createElement("canvas");c.width=Math.round(im.width*sc);c.height=Math.round(im.height*sc);
+  const x=c.getContext("2d");x.drawImage(im,0,0,c.width,c.height);const d=x.getImageData(0,0,c.width,c.height),a=d.data;let lo=255,hi=0;
+  for(let i=0;i<a.length;i+=4){const g=.299*a[i]+.587*a[i+1]+.114*a[i+2];a[i]=g;if(g<lo)lo=g;if(g>hi)hi=g;}
+  const r=Math.max(1,hi-lo);for(let i=0;i<a.length;i+=4){const g=Math.max(0,Math.min(255,(a[i]-lo)*255/r));a[i]=a[i+1]=a[i+2]=g;}
+  x.putImageData(d,0,0);const t=document.createElement("canvas"),ts=Math.min(1,320/Math.max(c.width,c.height));t.width=c.width*ts;t.height=c.height*ts;t.getContext("2d").drawImage(im,0,0,t.width,t.height);
+  URL.revokeObjectURL(url);ok({canvas:c,thumb:t.toDataURL("image/jpeg",.7)});};
+ im.onerror=()=>ko(new Error("img"));im.src=url;});}
+const PRICE_RE=/(\d{1,3})\s?[,.]\s?(\d{2})(?!\d)/g;
+const SKIP_RE=/\btotale|\bsubtotale|\biva\b|\bcontant|\bresto\b|\bpagamento|\bbancomat|\bcarta\b|\bscontrino|\bdocumento|\bcassa\b|\boperatore|\bimporto|\bsconto|\brisparmi|\bpunti\b|\bfidelity|\bp\.?\s?iva|\btel\b|\bvia\b|\bn\.\s?\d/i;
+const UNIT_RE=/kg|\/\s?l\b|litr|\blt\b|al\s?kg|€\s?\/|\/\s?kg|al\s?pz|al\s?litro|\/\s?100/i;
+const nice=t=>{t=t.replace(/[^A-Za-zÀ-ÿ0-9%'.,\- ]/g," ").replace(/\s+/g," ").trim().toLowerCase();return t.charAt(0).toUpperCase()+t.slice(1);};
+// dal testo letto: un cartellino (nome + prezzo grande) o uno scontrino (più righe nome + prezzo)
+function parseOCR(data){
+ const lines=(data.lines&&data.lines.length?data.lines:(data.text||"").split("\n").map(t=>({text:t,bbox:{y0:0,y1:0}}))).map(l=>({t:(l.text||"").replace(/\s+/g," ").trim(),h:l.bbox?l.bbox.y1-l.bbox.y0:0})).filter(l=>l.t);
+ const prices=[],pairs=[],names=[];
+ lines.forEach((l,i)=>{const ms=[...l.t.matchAll(PRICE_RE)].map(m=>+(m[1]+"."+m[2]));const letters=(l.t.match(/[A-Za-zÀ-ÿ]/g)||[]).length;
+  const unit=UNIT_RE.test(l.t),skip=SKIP_RE.test(l.t);
+  // il prezzo al kg/litro è quello vicino a "kg", "/l", "€/"; gli altri sulla stessa riga restano prezzi veri
+  let prevEnd=0;
+  [...l.t.matchAll(PRICE_RE)].forEach(m=>{const v=+(m[1]+"."+m[2]);const before=l.t.slice(prevEnd,m.index);prevEnd=m.index+m[0].length;if(!(v>0&&v<500))return;
+   const ctx=before+" "+l.t.slice(prevEnd,prevEnd+6).split(/\d/)[0];
+   prices.push({v,h:l.h,unit:UNIT_RE.test(ctx),skip,i});});
+  if(ms.length&&!unit&&!skip&&letters>=4){const nm=nice(l.t.replace(PRICE_RE," ").replace(/€|eur\b/ig," ").replace(/\b\d+\s?[x×]\s?\d+\w*\b/ig,m=>m));if(nm.replace(/[^a-zà-ÿ]/gi,"").length>=3)pairs.push({n:nm,p:ms[ms.length-1]});}
+  if(!ms.length&&!skip&&letters>=4&&letters/l.t.length>=.55&&!/prezzo|offerta|promo|al kg|euro/i.test(l.t))names.push({t:l.t,i,h:l.h});});
+ let unitPrice=(prices.find(x=>x.unit)||{}).v||null;
+ if(pairs.length>=3)return{mode:"scontrino",items:pairs.slice(0,30).map(x=>({n:x.n,p:x.p,on:true})),unitPrice:null};
+ const main=prices.filter(x=>!x.unit&&!x.skip).sort((a,b)=>b.h-a.h)[0]||prices.filter(x=>!x.unit)[0]||null;
+ const nm=names.slice(0,2).map(x=>x.t).join(" ");
+ return{mode:"etichetta",items:[{n:nice(nm)||"",p:main?main.v:null,on:true}],unitPrice};
+}
+// abbinamento prudente: servono abbastanza parole in comune, così "caffè macinato" non diventa carne macinata
+function matchFood(n){const w=norm(n).split(/[^a-z]+/).filter(x=>x.length>=4);if(!w.length)return null;let best=null,bs=0;
+ const same=(a,b)=>a===b||(a.length>=5&&b.length>=5&&a.slice(0,5)===b.slice(0,5));
+ Object.keys(FOODS).forEach(id=>{const fw=norm(FOODS[id].n).split(/[^a-z]+/).filter(x=>x.length>=4);if(!fw.length||!same(fw[0],w[0]))return;
+  // se l'ingrediente è "in scatola", "pronto", "cotto"… anche l'etichetta deve dirlo
+  if(fw.some(x=>/^(scatola|pronto|pronta|cotto|affumicato|secchi|tostati|essicc|fresc)/.test(x)&&!w.some(y=>same(x,y))))return;
+  const di=norm(FOODS[id].n).match(/\bdi\s+([a-z]{4,})/);if(di&&!w.some(y=>same(di[1],y)))return;
+  const sc=fw.filter(x=>w.some(y=>same(x,y))).length/fw.length;if(sc>bs){bs=sc;best=id;}});return best;}
+async function runOCR(file){
+ OC={busy:true,msg:"Preparo la foto…",items:[]};vSpesa();
+ try{const {canvas,thumb}=await prepImage(file);OC.thumb=thumb;OC.msg="Scarico il lettore di testo (solo la prima volta, serve internet)…";vSpesa();
+  await loadScript(OCR_CFG.lib);
+  if(!ocrWorker)ocrWorker=await Tesseract.createWorker("ita",1,{workerPath:OCR_CFG.worker,corePath:OCR_CFG.core,langPath:OCR_CFG.lang,
+   logger:m=>{if(m.status==="recognizing text"&&OC&&OC.busy){OC.msg="Leggo l'etichetta… "+Math.round((m.progress||0)*100)+"%";const e=$("#ocr-msg");if(e)e.textContent=OC.msg;}}});
+  OC.msg="Leggo l'etichetta…";vSpesa();
+  const {data}=await ocrWorker.recognize(canvas);
+  const r=parseOCR(data);OC=Object.assign({busy:false,thumb,raw:data.text||""},r);
+  OC.items.forEach(it=>{it.f=matchFood(it.n);});
+  if(!OC.items.some(x=>x.n||x.p))OC.err="Non sono riuscito a leggere bene: prova una foto più vicina, dritta e con buona luce. Puoi anche scrivere qui sotto.";
+ }catch(e){OC={busy:false,err:e&&e.message==="load"?"Per leggere le foto la prima volta serve internet: riprova quando hai campo.":"Qualcosa è andato storto con la foto: riprova.",items:[{n:"",p:null,on:true}],thumb:OC&&OC.thumb};}
+ vSpesa();
+}
+function ocrBox(){
+ if(!OC)return"";
+ if(OC.busy)return`<div class="status info" style="display:flex;gap:10px;align-items:center">${OC.thumb?`<img src="${OC.thumb}" alt="" style="width:56px;height:56px;object-fit:cover;border-radius:8px">`:""}<span id="ocr-msg">${esc(OC.msg)}</span></div>`;
+ const one=OC.items.length===1;
+ return`<div class="status info"><div style="display:flex;gap:10px;align-items:center;margin-bottom:6px">${OC.thumb?`<img src="${OC.thumb}" alt="" style="width:56px;height:56px;object-fit:cover;border-radius:8px">`:""}
+  <b>${OC.err?"⚠ "+esc(OC.err):OC.mode==="scontrino"?`📄 Scontrino: ${OC.items.length} prodotti trovati`:"🏷 Ho letto questo, controlla:"}</b></div>
+  ${OC.items.map((it,i)=>`<div class="ing">${one?"":`<input type="checkbox" data-oon="${i}" ${it.on?"checked":""} style="width:20px;height:20px">`}<input data-on="${i}" value="${esc(it.n)}" placeholder="Nome prodotto" style="flex:1;width:auto"><input data-op="${i}" inputmode="decimal" value="${it.p!=null?it.p.toFixed(2).replace(".",","):""}" placeholder="€" style="width:76px"></div>
+   ${it.f?`<label style="display:flex;gap:8px;align-items:center;margin:2px 0 4px"><input type="checkbox" data-ofood="${i}" ${it.fu!==false?"checked":""} style="width:18px;height:18px"> Aggiorna il prezzo di «${esc(FOODS[it.f].n)}» (${esc(unitLbl(it.f))})</label>`:""}`).join("")}
+  ${OC.unitPrice?`<div class="mm">Prezzo al kg/litro letto: ${eur(OC.unitPrice)}</div>`:""}
+  ${OC.raw?`<details><summary>Testo letto</summary><div class="mm" style="white-space:pre-wrap">${esc(OC.raw.trim())}</div></details>`:""}
+  <div class="btnrow"><button class="btn sm" id="ocr-ok">✓ Aggiungi${one?"":" i selezionati"}</button><button class="btn ghost sm" id="ocr-no">Annulla</button></div></div>`;
+}
+function bindOCR(){
+ const fb=$("#ocr-btn"),fi=$("#ocr-file");if(fb)fb.onclick=()=>fi.click();
+ if(fi)fi.onchange=e=>{const f=e.target.files[0];if(f)runOCR(f);};
+ if(!OC||OC.busy)return;
+ document.querySelectorAll("[data-on]").forEach(i=>i.oninput=()=>{const it=OC.items[+i.dataset.on];it.n=i.value;});
+ document.querySelectorAll("[data-op]").forEach(i=>i.oninput=()=>{const v=parseFloat(i.value.replace(",","."));OC.items[+i.dataset.op].p=v>0?v:null;});
+ document.querySelectorAll("[data-oon]").forEach(c=>c.onchange=()=>{OC.items[+c.dataset.oon].on=c.checked;});
+ document.querySelectorAll("[data-ofood]").forEach(c=>c.onchange=()=>{OC.items[+c.dataset.ofood].fu=c.checked;});
+ const no=$("#ocr-no");if(no)no.onclick=()=>{OC=null;vSpesa();};
+ const ok=$("#ocr-ok");if(ok)ok.onclick=()=>{const today=new Date().toISOString().slice(0,10);
+  OC.items.filter(it=>it.on&&it.n.trim()).forEach(it=>{const n=it.n.trim(),p=it.p||0;
+   const same=S.extra.find(x=>!x.ok&&!x.q&&norm(x.n)===norm(n));if(same){same.qty=(same.qty||1)+1;if(p)same.p=p;}else S.extra.push({n,qty:1,p,unit:""});
+   S.recentEx=[{n,p}].concat(S.recentEx.filter(x=>norm(x.n)!==norm(n))).slice(0,20);
+   if(it.f&&it.fu!==false&&p)S.prezzi[it.f]={v:p,d:today};});
+  OC=null;save();vSpesa();};
+}
+
 /* ===== SPESA ===== */
 // tutte le voci della settimana: {id,g,place:"casa"|"cab",day}
 function weekEntries(){
@@ -1200,7 +1288,9 @@ function vSpesa(){
   <div class="res" id="ex-sug"></div>
   <div class="row"><div><label>Quantità</label><input id="ex-q" type="text" inputmode="decimal" value="1"></div>
   <div><label id="ex-pl">Prezzo € (se vuoi)</label><input id="ex-p" type="text" inputmode="decimal" placeholder="—"></div></div>
-  <button class="btn sm" id="ex-add">➕ Aggiungi alla lista</button>
+  <div class="btnrow"><button class="btn sm" id="ex-add">➕ Aggiungi alla lista</button><button class="btn ghost sm" id="ocr-btn">📷 Foto etichetta o scontrino</button></div>
+  <input type="file" id="ocr-file" accept="image/*" capture="environment" hidden>
+  ${ocrBox()}
   ${recent.length?`<label>Aggiunti di recente: tocca per rimetterli</label><div class="chips">${recent.map((r,i)=>`<span class="chip" data-rec="${i}">${esc(r.n)}${r.p?` · ${eur(r.p)}`:""}</span>`).join("")}</div>`:""}
   ${S.extra.length?`<h3>Nella lista</h3>`+S.extra.map((x,i)=>`<div class="li ${x.ok?"done":""}"><input type="checkbox" id="ex-${i}" data-exc="${i}" ${x.ok?"checked":""}><label for="ex-${i}">${esc(x.n)}<small>${x.q?esc(x.q):(x.qty||1)+(x.p?" × "+eur(x.p):"")}</small></label><button class="pr ${x.p?"mine":""}" data-exp="${i}" title="Tocca per il prezzo">${x.p?eur(exCost(x)):"€ ?"}</button><button class="mini" data-exd="${i}" aria-label="Togli">✕</button></div>`).join("")+
    `<div class="tot"><span class="mm">Stima aggiunte</span><b>≈ ${eur(exTot)}</b></div>`:""}
@@ -1242,6 +1332,7 @@ function vSpesa(){
   S.recentEx=[{n,p:pv||0}].concat(S.recentEx.filter(x=>norm(x.n)!==norm(n))).slice(0,20);save();vSpesa();};
  const exAdd=()=>{const n=$("#ex-n").value.trim();if(!n)return;const num=v=>parseFloat(String(v).replace(",","."));
   addEx(n,num($("#ex-q").value)>0?num($("#ex-q").value):1,num($("#ex-p").value));setTimeout(()=>{const i=$("#ex-n");if(i)i.focus();},0);};
+ bindOCR();
  $("#ex-add").onclick=exAdd;$("#ex-n").oninput=exHint;$("#ex-n").onkeydown=e=>{if(e.key==="Enter")$("#ex-q").focus();};
  $("#ex-p").onkeydown=$("#ex-q").onkeydown=e=>{if(e.key==="Enter")exAdd();};
  document.querySelectorAll("[data-rec]").forEach(c=>c.onclick=()=>{const r=recent[+c.dataset.rec];addEx(r.n,1,r.p);});
