@@ -91,6 +91,9 @@ summary{cursor:pointer;color:var(--acc);font-size:13px;padding:7px 0;font-weight
 .stepper span:last-child{display:flex;align-items:center;gap:12px}
 .stepper button{width:34px;height:34px;border-radius:50%;border:1px solid var(--line);background:var(--card2);color:var(--tx);font-size:18px;cursor:pointer}
 .stepper b{min-width:14px;text-align:center}
+.mode{margin-left:auto;display:flex;background:var(--card2);border:1px solid var(--line);border-radius:999px;padding:3px;flex:none}
+.mode button{border:0;background:none;color:var(--mut);font-size:13px;font-weight:600;padding:7px 10px;border-radius:999px;cursor:pointer;white-space:nowrap}
+.mode button.on{background:var(--acc);color:#14171a}
 .famh{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:12px}
 .famh:first-of-type{margin-top:4px}
 </style>
@@ -99,6 +102,7 @@ summary{cursor:pointer;color:var(--acc);font-size:13px;padding:7px 0;font-weight
 <header>
 <svg viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="14" fill="#f5a524"/><path d="M32 10c-7 10-14 18-14 27a14 14 0 0 0 28 0c0-9-7-17-14-27z" fill="#14171a"/><path d="M28 30v9m4-9v9m4-9v9m-8 0a4 4 0 0 0 8 0m-4 4v8" stroke="#f5a524" stroke-width="2.5" stroke-linecap="round" fill="none"/></svg>
 <h1>Rifornimento<small>Pasti a macro per chi viaggia</small></h1>
+<div class="mode" role="group" aria-label="Oggi sei"><button data-mode="casa">🏠 Casa</button><button data-mode="lavoro">🚚 Lavoro</button></div>
 </header>
 <main id="app"></main>
 <nav>
@@ -434,7 +438,7 @@ const famCoef=pr=>pr.fam.ad+pr.fam.ra*.75+pr.fam.pi*.4;
 const famN=pr=>pr.fam.ad+pr.fam.ra+pr.fam.pi;
 // "@dom:cen" = il piatto di casa di domenica a cena
 function resolveIds(ids,fam){return ids.map(x=>x&&x[0]==="@"?(fam&&fam[x.slice(1,4)]?fam[x.slice(1,4)][x.slice(5)]||null:null):x);}
-function generatePlan(pr,seed){
+function generatePlan(pr,seed,keepFam){
  const r=rng(seed),plan={},recent={},slots=slotsFor(pr),F=!!(pr.fam&&pr.fam.on),cab=pr.giorni;
  const days=F?DAYS.map(x=>x[0]):cab.slice(),home=d=>F&&!cab.includes(d);
  let fam=null;const refs={},cook={};
@@ -445,6 +449,8 @@ function generatePlan(pr,seed){
    if(pr.fam.porta>=4){const nx=DAYS[(i+1)%7][0];if(cab.includes(nx))refs[nx]=ref;}});
   fam={};const used=[];
   days.forEach(d=>{fam[d]={};["pra","cen"].forEach(w=>{
+   const ex=keepFam&&keepFam[d]&&keepFam[d][w];
+   if(ex&&meal(ex)&&famOk(meal(ex),pr)&&(!cook[d]||portable(meal(ex),pr))){fam[d][w]=ex;used.push(ex);return;}
    const base=REC.filter(x=>x.s.includes(w)&&famOk(x,pr));let pool=cook[d]?base.filter(x=>portable(x,pr)):base;if(!pool.length)pool=base;
    const fr=pool.filter(x=>!used.includes(x.id)),pk=fr.length?fr:pool,c=pk.length?pk[Math.floor(r()*pk.length)]:null;
    fam[d][w]=c?c.id:null;if(c)used.push(c.id);});});
@@ -515,6 +521,20 @@ const dayLbl=d=>DAYS.find(x=>x[0]===d)[1];
 
 function newPlan(){const p=S.profilo,g=generatePlan(p,Date.now());S.plan=Object.assign(g,{slots:slotsFor(p),sig:sig(p)});
  const today=DAYS[(new Date().getDay()+6)%7][0];S.day=g.days[today]?today:Object.keys(g.days)[0];S.check={};S.eaten={};save();}
+const todayCode=()=>DAYS[(new Date().getDay()+6)%7][0];
+const nextDay=d=>DAYS[(DAYS.findIndex(x=>x[0]===d)+1)%7][0];
+// interruttore Casa/Lavoro: cambia solo oggi, rifà il piano tenendo le ricette di casa già scelte
+function setMode(m){
+ const p=S.profilo,t=todayCode(),g=p.giorni.filter(x=>x!==t).concat(m==="lavoro"?[t]:[]);
+ p.giorni=DAYS.map(x=>x[0]).filter(x=>g.includes(x));
+ const keep=S.plan&&S.plan.fam,old=S.plan;
+ const n=generatePlan(p,Date.now(),p.fam.on?keep:null);
+ S.plan=Object.assign(n,{slots:slotsFor(p),sig:sig(p)});
+ if(!old||old.slots.length!==S.plan.slots.length)S.eaten={};else delete S.eaten[t];
+ S.day=S.plan.days[t]?t:Object.keys(S.plan.days)[0];save();go("piano");
+}
+function renderMode(){const w=S.profilo.giorni.includes(todayCode());
+ document.querySelectorAll("[data-mode]").forEach(b=>{b.classList.toggle("on",(b.dataset.mode==="lavoro")===w);b.onclick=()=>{if((b.dataset.mode==="lavoro")!==w)setMode(b.dataset.mode);else go("piano");};});}
 const planHome=d=>!!(S.plan&&S.plan.home&&S.plan.home.includes(d));
 const TdP=d=>Td(S.profilo,d,planHome(d));
 // pasti del giorno con le grammature calcolate, divise per slot
@@ -541,6 +561,7 @@ function bindStale(after){const b=$("#stale");if(b)b.onclick=()=>{if(!S.profilo.
 function go(v){S.view=v;save();render();window.scrollTo(0,0);}
 document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>go(b.dataset.v));
 function render(){
+ renderMode();
  document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("on",b.dataset.v===S.view));
  ({piano:vPiano,spesa:vSpesa,profilo:vProfilo})[S.view]();
 }
@@ -647,6 +668,23 @@ function recipeBox(d,w,get){
   ${p.fam.pi>0?`<div class="kid">👶 Per il piccolo: ${esc(R.kid||"porzione a pezzetti.")} Sale solo dopo aver tolto la sua porzione.</div>`:""}
   ${t.extra.length?`<div class="kid">🍲 Metti subito le porzioni della cabina in contenitori chiusi, falle raffreddare e mettile in frigo.</div>`:""}</details>`;
 }
+// a casa con partenza domani: cosa caricare per tutto il viaggio
+function packCard(d,get){
+ const p=S.profilo,PD=S.plan.days;
+ if(!S.plan.fam||!planHome(d))return"";
+ const nx=nextDay(d);if(!PD[nx]||planHome(nx))return"";
+ const trip=[];let x=nx;while(PD[x]&&!planHome(x)&&!trip.includes(x)){trip.push(x);x=nextDay(x);}
+ if(!trip.length)return"";
+ const pots=[];trip.forEach(t=>PD[t].forEach((v,mi)=>{if(v&&v[0]==="@"){const R=meal(resolveIds([v],S.plan.fam)[0]);if(R)pots.push(R.n+" · "+dayLbl(t)+" "+SLOTS[S.plan.slots[mi]].toLowerCase());}}));
+ const E=[];trip.forEach(t=>{const ds=get(t);ds.slotItems.forEach((its,mi)=>{const v=ds.ids[mi];if(v&&v[0]==="@")return;its.forEach(i=>E.push({id:i.id,g:i.g}));});});
+ const items=shopping(E);
+ let h=`<div class="card"><h2>🧳 Da caricare per la partenza</h2><div class="mm" style="margin-top:-4px">Viaggio ${dayLbl(trip[0])}${trip.length>1?"–"+dayLbl(trip[trip.length-1]):""} (${trip.length} giorn${trip.length===1?"o":"i"}). Spunta man mano.</div>`;
+ if(pots.length)h+=`<h3>Contenitori da casa ❄</h3>`+pots.map((t,i)=>{const k="pack:pot"+i,on=!!S.check[k];return`<div class="li ${on?"done":""}"><input type="checkbox" id="c-${k}" data-c="${k}" ${on?"checked":""}><label for="c-${k}">${esc(t)}</label></div>`;}).join("");
+ let rep="";items.forEach(it=>{const f=FOODS[it.id];if(it.rep!==rep){rep=it.rep;h+=`<h3>${rep}</h3>`;}
+  const k="pack:"+it.id,on=!!S.check[k],q=f.u?it.q.split(" → ")[0]:fmtW(it.id,E.filter(e=>e.id===it.id).reduce((a,e)=>a+e.g,0));
+  h+=`<div class="li ${on?"done":""}"><input type="checkbox" id="c-${k}" data-c="${k}" ${on?"checked":""}><label for="c-${k}">${esc(f.n)}<small>${esc(q)}${f.fr?" · ❄ borsa frigo":""}</small></label></div>`;});
+ return h+`<div class="mm" style="margin-top:8px">Il fresco va in borsa frigo con i siberini. Quello che manca lo trovi nella lista "Spesa per la cabina".</div></div>`;
+}
 function vPiano(){
  const p=S.profilo;
  if(!S.plan){$("#app").innerHTML=`<div class="empty">Nessun piano ancora.<button class="btn" onclick="go('profilo')">Imposta gli obiettivi</button></div>`;return;}
@@ -662,6 +700,7 @@ function vPiano(){
  let html=staleBox()+`<div class="card"><div class="meter"><span>Settimana</span><b>${okN}/${days.length} giorni a obiettivo</b></div>
  <div class="daytabs">${days.map(x=>`<span class="chip ${x===d?"on":""}" data-d="${x}">${dayLbl(x)}${planHome(x)?" 🏠":isRest(p,x)?" 💤":""}<i class="dot" style="background:${ok(x)?"var(--ok)":"var(--ko)"}"></i></span>`).join("")}</div></div>
  <div class="card">
+  ${d===todayCode()?`<div class="mm" style="margin:0 0 8px;color:var(--acc);font-weight:600">Oggi${days.includes(nextDay(d))&&planHome(nextDay(d))!==home?(home?" · domani parti 🚚":" · domani torni a casa 🏠"):""}</div>`:""}
   ${home?`<div class="mm" style="margin:0 0 8px">🏠 Giorno a casa: mangi con la famiglia, meno calorie, stesse proteine.</div>`:isRest(p,d)?`<div class="mm" style="margin:0 0 8px">💤 Giorno fermo: meno calorie, stesse proteine.</div>`:""}
   <div class="meter"><span>Calorie</span><span><b>${Math.round(r.tot.k)}</b> / ${T.k} kcal</span></div><div class="bar"><i class="${r.kOk?"ok":""}" style="width:${pct(r.tot.k,T.k)}%"></i></div>
   <div class="meter" style="margin-top:8px"><span>Proteine</span><span><b>${Math.round(r.tot.p)}</b> / ${T.p} g</span></div><div class="bar"><i class="${r.pOk?"ok":""}" style="width:${pct(r.tot.p,T.p)}%"></i></div>
@@ -693,11 +732,13 @@ function vPiano(){
    html+=`<div class="famh"><div><div class="slot" style="font-size:12px;color:var(--acc);font-weight:700;text-transform:uppercase;letter-spacing:.7px">${SLOTS[w]}</div><div class="nm" style="font-weight:650">${esc(R.n)}</div></div><button class="mini" data-swr="${d}:${w}" title="Cambia piatto">↻</button></div>${recipeBox(d,w,get)}`;});
   html+=`</div>`;
  }
+ html+=packCard(d,get);
  html+=`<button class="btn ghost" id="regen">Rigenera la settimana</button>
  <p class="note">↻ cambia il piatto con un altro adatto. Valori nutrizionali medi da tabelle ed etichette tipiche: possono variare di marca in marca. Le quantità di olio, pane e pasta pesale le prime volte, poi vai a occhio.</p>`;
  $("#app").innerHTML=html;
  bindStale(vPiano);
  document.querySelectorAll("[data-d]").forEach(c=>c.onclick=()=>{S.day=c.dataset.d;save();vPiano();});
+ document.querySelectorAll("#app [data-c]").forEach(c=>c.onchange=()=>{S.check[c.dataset.c]=c.checked;save();vPiano();});
  document.querySelectorAll("[data-e]").forEach(b=>b.onclick=()=>{const mi=b.dataset.e,e=S.eaten[d]=S.eaten[d]||{};if(e[mi])delete e[mi];else e[mi]=true;save();vPiano();});
  document.querySelectorAll("[data-sw]").forEach(b=>b.onclick=()=>{const mi=+b.dataset.sw,s=slots[mi],pr=home?Object.assign({},p,{frigo:true,caldo:true}):p;
   const rr=rng(Date.now());let nid=null;
