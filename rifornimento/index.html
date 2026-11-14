@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Rifornimento">
-<meta name="app-version" content="1.7 · 14/11/2026">
+<meta name="app-version" content="1.8 · 14/11/2026">
 <title>Rifornimento – pasti a macro per chi viaggia</title>
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -581,20 +581,31 @@ function shopping(entries){
  return Object.entries(tot).map(([id,g])=>{const f=FOODS[id],pv=priceOf(id);let q,cost;
   if(f.u){const n=Math.max(1,Math.round(g/f.u));q=n+" "+(n===1?f.ul[0]:f.ul[1]);
    if(f.pk[0]){const k=Math.ceil(n/f.pk[0]);q+=" → "+k+"× "+f.pk[1];cost=k*pv;}else cost=n*pv;}
-  else{q=fmtW(id,g);
+  else{q=fmtW(id,g)+pzHint(id,g);
    if(f.pk[0]){const k=Math.ceil(g/f.pk[0]);q+=" → "+k+"× "+f.pk[1];cost=k*pv;}else cost=g/1000*pv;}
   return{id,n:f.n,rep:f.rep,q,cost};}).sort((a,b)=>a.rep.localeCompare(b.rep)||a.n.localeCompare(b.n));
 }
 function fmtW(id,g){const f=FOODS[id],u=f.ml?["ml","l"]:["g","kg"];
  if(g>=1000)return(Math.round(g/100)/10).toString().replace(".",",")+" "+u[1];
  const st=g<100?5:10;return Math.max(st,Math.round(g/st)*st)+" "+u[0];}
-function fmtTot(id,g){const f=FOODS[id];if(f.u){const n=Math.max(1,Math.round(g/f.u));return n+" "+(n===1?f.ul[0]:f.ul[1]);}return fmtW(id,g);}
+// peso medio di un pezzo, per dire "≈ 6 cosce" accanto ai grammi
+const PZ={cosce:[200,"coscia","cosce"],pollo_cr:[250,"petto","petti"],braciola:[200,"braciola","braciole"],salsiccia:[100,"salsiccia","salsicce"],
+ patate:[200,"patata","patate"],patate_d:[300,"patata dolce","patate dolci"],zucchine:[200,"zucchina","zucchine"],melanzane:[300,"melanzana","melanzane"],
+ peperoni:[200,"peperone","peperoni"],cipolla:[100,"cipolla","cipolle"],carote_n:[80,"carota","carote"],pomodori:[150,"pomodoro","pomodori"],
+ finocchi:[250,"finocchio","finocchi"],carciofi:[150,"carciofo","carciofi"],cetrioli:[250,"cetriolo","cetrioli"],orata:[150,"filetto","filetti"],
+ branzino:[150,"filetto","filetti"],merluzzo:[150,"filetto","filetti"],platessa:[120,"filetto","filetti"],salmone_f:[150,"trancio","tranci"],
+ manzo:[100,"fettina","fettine"],vitello:[80,"fettina","fettine"],mozzarella:[125,"mozzarella","mozzarelle"],mozz_l:[125,"mozzarella","mozzarelle"],
+ broccoli:[400,"broccolo","broccoli"],cavolfiore:[800,"cavolfiore","cavolfiori"],verza:[800,"verza","verze"],zucca:[1000,"zucca","zucche"]};
+function pzHint(id,g){const z=PZ[id];if(!z||g<z[0]*.6)return"";const n=Math.max(1,Math.round(g/z[0]));return` (≈ ${n} ${n===1?z[1]:z[2]})`;}
+function fmtTot(id,g){const f=FOODS[id];if(f.u){const n=Math.max(1,Math.round(g/f.u));return n+" "+(n===1?f.ul[0]:f.ul[1]);}return fmtW(id,g)+pzHint(id,g);}
+// persone a tavola: quante ne scegli tu, altrimenti tutta la famiglia
+const tavola=()=>{const p=S.profilo;return S.tavola>0?S.tavola:(p.fam.on?1+p.fam.ad+p.fam.ra+p.fam.pi:1);};
 
 /* ===== STATO ===== */
 const KEY="rifornimento_v1";
 const DEF={profilo:{sesso:"m",eta:32,peso:80,altezza:178,att:1.3,attR:1.2,obi:"man",pasti:4,frigo:true,caldo:false,escludi:[],giorni:["mar","mer","gio","ven","sab"],riposo:[],kcalMan:0,protMan:0,
   fam:{on:true,ad:3,ra:1,pi:1,porta:2}},
- plan:null,day:null,check:{},eaten:{},split:false,prezzi:{},corr:0,view:"profilo",myFoods:{},myRec:[],frigo:[],extra:[],recentEx:[]};
+ plan:null,day:null,check:{},eaten:{},split:false,prezzi:{},corr:0,view:"profilo",myFoods:{},myRec:[],frigo:[],extra:[],recentEx:[],tavola:0};
 const sig=p=>JSON.stringify([+p.pasti,!!p.frigo,!!p.caldo,p.escludi.slice().sort(),p.giorni,!!p.fam.on,p.fam.on?+p.fam.porta:0]);
 function normalize(x){
  x=Object.assign(JSON.parse(JSON.stringify(DEF)),x||{});
@@ -873,14 +884,15 @@ const searchBox=(pref,ph)=>`<input type="search" id="${pref}-q" placeholder="${p
 
 function recCard(R,o){
  o=o||{};const p=S.profilo,m=perPortion(R),n=1+(p.fam.on?famCoef(p):0),key=o.key||R.id;
- const miss=o.miss;
+ const miss=o.miss,np=tavola();
  return`<div class="meal"><div class="mh"><div><div class="nm">${R.mine?"⭐ ":""}${esc(R.n)}</div>
   <div class="mm">${R.min?R.min+" min · ":""}${Math.round(m.k)} kcal · P ${Math.round(m.p)} g a porzione · ${R.porta==="caldo"?"🍲 si porta in cabina":R.porta==="freddo"?"🥗 si porta, anche freddo":"🏠 solo a casa"}</div></div></div>
   ${o.match?matchBox(o.match):""}
   ${miss?`<div class="miss">${miss.length?`Ti manca: ${esc(miss.map(id=>FOODS[id].n).join(", "))}`:`<b>✓ Hai tutto</b>`}</div>`:""}
   <details ${RV.open===key?"open":""} data-open="${key}"><summary>Ingredienti e passaggi</summary>
-   <div class="mm" style="margin-top:6px">Per 1 adulto${n>1?` · per tutta la famiglia ×${n.toLocaleString("it-IT",{maximumFractionDigits:2})}`:""} (pesi da crudo)</div>
-   ${R.it.map(([id,g])=>`<div class="food"><span>${esc(FOODS[id].n)}</span><em>${fmtTot(id,g)}${n>1?` · ${fmtTot(id,g*n)}`:""}</em></div>`).join("")}
+   <div class="stepper"><span>👥 Persone a tavola</span><span><button data-tav="-1" aria-label="meno">−</button><b>${np}</b><button data-tav="1" aria-label="più">+</button></span></div>
+   <div class="mm">Dosi per ${np} person${np===1?"a":"e"} (pesi da crudo)${np>1?" · tra parentesi la dose a persona":""}</div>
+   ${R.it.map(([id,g])=>`<div class="food"><span>${esc(FOODS[id].n)}${np>1?`<br><small style="color:var(--mut)">${fmtTot(id,g)} a persona</small>`:""}</span><em>${fmtTot(id,g*np)}</em></div>`).join("")}
    ${R.st&&R.st.length?`<ol class="steps">${R.st.map(x=>`<li>${esc(x)}</li>`).join("")}</ol>`:""}
    ${R.kid&&p.fam.on&&p.fam.pi>0?`<div class="kid">👶 Per il piccolo: ${esc(R.kid)}</div>`:""}
   </details>
@@ -1087,7 +1099,8 @@ function vRicette(){
  document.querySelectorAll("[data-placego]").forEach(b=>b.onclick=()=>{let key=b.dataset.placego;
   if(key.startsWith("idea"))key=saveIdea(findR(key));
   const d=$("#pl-d").value,w=$("#pl-w").value;S.plan.fam[d][w]=key;RV.place=null;save();S.day=d;go("piano");});
- document.querySelectorAll("[data-miss]").forEach(b=>b.onclick=()=>{const R=findR(b.dataset.miss),p=S.profilo,n=1+(p.fam.on?famCoef(p):0);
+ document.querySelectorAll("[data-tav]").forEach(b=>b.onclick=()=>{const d=b.closest("details");if(d)RV.open=d.dataset.open;S.tavola=clamp(tavola()+ +b.dataset.tav,1,40);save();const y=window.scrollY;vRicette();window.scrollTo(0,y);});
+ document.querySelectorAll("[data-miss]").forEach(b=>b.onclick=()=>{const R=findR(b.dataset.miss),n=tavola();
   R.it.forEach(([id,g])=>{if(!STAPLE.includes(id)&&!hasIng(id))S.extra.push({n:FOODS[id].n,q:fmtTot(id,g*n)+" · per "+R.n});});save();b.textContent="✓ Aggiunti alla spesa";b.disabled=true;});
  const mo=$("#more");if(mo)mo.onclick=()=>{RV.more=true;vRicette();};
  document.querySelectorAll("[data-adapt]").forEach(b=>b.onclick=()=>{const R=meal(b.dataset.adapt);RV.draft=adaptRec(R,matchRec(R).swaps);vRicette();window.scrollTo(0,0);});
