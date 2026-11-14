@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Rifornimento">
-<meta name="app-version" content="1.8 · 14/11/2026">
+<meta name="app-version" content="1.9 · 14/11/2026">
 <title>Rifornimento – pasti a macro per chi viaggia</title>
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -438,7 +438,9 @@ const meal=id=>MEALS.find(x=>x.id===id)||REC.find(x=>x.id===id);
 const isRec=id=>!!id&&REC.some(x=>x.id===id);
 const BUILTIN_FOODS=Object.keys(FOODS);
 // ruolo automatico per gli ingredienti delle ricette create: P proteico, F verdura, C il resto
-function autoRole(id){const f=FOODS[id];if(f.k>0&&f.p*4/f.k>=.28)return"P";if(f.k<=70)return"F";return"C";}
+function autoRole(id){const f=FOODS[id];if(f.k<=70&&f.p<8)return"F";if(f.k>0&&f.p*4/f.k>=.28)return"P";if(f.k<=160&&f.p>=6&&f.p*4/f.k>=.2)return"P";if(f.k<=70)return"F";return"C";}
+// ricette salvate prima della correzione: verdure che erano finite tra le proteine
+function fixRoles(){let ch=false;S.myRec.forEach(r=>r.it.forEach(x=>{if(FOODS[x[0]]&&x[2]==="P"&&autoRole(x[0])==="F"){x[2]="F";ch=true;}}));if(ch){syncMine();save();}}
 // porta dentro FOODS e REC gli ingredienti e le ricette create da te
 function syncMine(){
  Object.keys(FOODS).forEach(k=>{if(!BUILTIN_FOODS.includes(k))delete FOODS[k];});Object.assign(FOODS,S.myFoods);
@@ -620,7 +622,7 @@ function normalize(x){
 }
 let S;
 try{S=JSON.parse(localStorage.getItem(KEY));}catch(e){S=null;}
-S=normalize(S);syncMine();
+S=normalize(S);syncMine();fixRoles();
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
@@ -863,7 +865,7 @@ function vPiano(){
 }
 
 /* ===== RICETTE ===== */
-const RV={tab:"frigo",draft:null,ing:null,ideas:[],place:null,q:"",open:null};
+const RV={tab:"frigo",draft:null,ing:null,ideas:[],place:null,q:"",open:null,ai:{busy:false,err:"",list:[],q:"",ctl:null}};
 // ingredienti che si considerano equivalenti quando guardi cosa hai in casa
 const EQ=[["pasta","pasta_int"],["riso","riso_pr"],["pane","pane_int","bun"],["mozz_l","mozzarella"],["pollo_cr","cosce","pollo"],["passata","pelati","pomodori"],["fagioli","fagioli_s"],["ceci","ceci_s"],["lentic","lentic_s"],["carote","carote_n"],["grana","pecorino"],["macinato","maci_bianco"],["latte","soia"],["piadina","wrap"]];
 const STAPLE=["olio"];
@@ -885,7 +887,7 @@ const searchBox=(pref,ph)=>`<input type="search" id="${pref}-q" placeholder="${p
 function recCard(R,o){
  o=o||{};const p=S.profilo,m=perPortion(R),n=1+(p.fam.on?famCoef(p):0),key=o.key||R.id;
  const miss=o.miss,np=tavola();
- return`<div class="meal"><div class="mh"><div><div class="nm">${R.mine?"⭐ ":""}${esc(R.n)}</div>
+ return`<div class="meal"><div class="mh"><div><div class="nm">${R.mine?"⭐ ":""}${R.ai?"🤖 ":""}${esc(R.n)}</div>
   <div class="mm">${R.min?R.min+" min · ":""}${Math.round(m.k)} kcal · P ${Math.round(m.p)} g a porzione · ${R.porta==="caldo"?"🍲 si porta in cabina":R.porta==="freddo"?"🥗 si porta, anche freddo":"🏠 solo a casa"}</div></div></div>
   ${o.match?matchBox(o.match):""}
   ${miss?`<div class="miss">${miss.length?`Ti manca: ${esc(miss.map(id=>FOODS[id].n).join(", "))}`:`<b>✓ Hai tutto</b>`}</div>`:""}
@@ -912,7 +914,8 @@ function placeBox(key){
   <select id="pl-w"><option value="pra">Pranzo</option><option value="cen">Cena</option></select></div>
   <div class="btnrow"><button class="btn sm" data-placego="${key}">Conferma</button><button class="btn ghost sm" data-cancel="1">Annulla</button></div></div>`;
 }
-const findR=key=>key.startsWith("idea")?RV.ideas[+key.slice(4)]:meal(key);
+const findR=key=>key.startsWith("idea")?RV.ideas[+key.slice(4)]:key.startsWith("ai")?RV.ai.list[+key.slice(2)]:meal(key);
+const isTemp=key=>/^(idea|ai)\d/.test(key);
 function saveIdea(R){const id="ur"+Date.now().toString(36);const r={id,s:["pra","cen"],n:R.n,min:R.min,porta:R.porta,it:R.it.map(x=>x.slice()),st:R.st.slice(),kid:R.kid||""};S.myRec.push(r);syncMine();save();return id;}
 
 // ===== Aiuto in cucina: ricette più vicine e idee dai tuoi ingredienti =====
@@ -1057,6 +1060,69 @@ function makeIdeas(){
  return out.slice(0,8).map((x,i)=>Object.assign(x,{id:"idea"+i}));
 }
 
+// ===== Ricette con Claude (solo nel link di Claude: usa il conto Claude di chi guarda) =====
+let SAMPLE=null,SAMPLE_READY=false;
+(async()=>{try{SAMPLE=window.claude&&window.claude.use?await window.claude.use("sample"):null;}catch(e){SAMPLE=null;}
+ SAMPLE_READY=true;if(S.view==="ricette"&&!RV.draft&&!RV.ing)vRicette();})();
+function aiCard(){
+ const A=RV.ai;
+ if(!SAMPLE)return SAMPLE_READY?`<div class="card"><div class="mm">🤖 <b>Ricette con Claude</b>: disponibili aprendo Rifornimento dal link di Claude.</div></div>`:"";
+ return`<div class="card"><h2>🤖 Chiedi a Claude</h2>
+  <div class="mm" style="margin-top:-4px">Claude crea ricette vere ${S.frigo.length?"con quello che hai":"anche partendo da un nome"}, con dosi per la tua famiglia e porzioni adatte ai tuoi obiettivi.</div>
+  <label>Cosa ti va? (facoltativo)</label><input id="ai-q" value="${esc(A.q)}" placeholder="Es. veloce, messicano, lasagne, senza forno, da portare in cabina…" ${A.busy?"disabled":""}>
+  <div class="btnrow">${A.busy?`<button class="btn ghost sm" id="ai-stop">■ Ferma</button>`:`<button class="btn sm" id="ai-go">✨ ${A.list.length?"Altre 3 ricette":"Crea 3 ricette con Claude"}</button>`}</div>
+  ${A.busy?`<div class="status info" id="ai-msg">Claude sta pensando… (può volerci fino a un minuto)</div>`:""}
+  ${A.err?`<div class="status ko">${esc(A.err)}</div>`:""}
+  ${A.list.length?A.list.map((R,i)=>recCard(R,{key:"ai"+i,save:1})).join(""):""}
+ </div>`;
+}
+const AI_ERR={not_granted:"Hai scelto di non usare Claude in questa pagina.",sampling_disabled:"Claude non è disponibile per questo account.",rate_limited:"Troppe richieste o limite d'uso raggiunto: riprova più tardi.",
+ session_expired:"Accedi di nuovo a Claude e riprova.",refused:"Claude non ha potuto rispondere a questa richiesta: prova a riformularla.",invalid_json:"Risposta non leggibile: tocca di nuovo per riprovare."};
+function aiPrompt(q){
+ const p=S.profilo,T=targets(p,false),meals=p.pasti==4?3.5:3;
+ const cat=Object.keys(FOODS).map(id=>id+": "+FOODS[id].n).join("\n");
+ const have=S.frigo.filter(id=>FOODS[id]).map(id=>FOODS[id].n);
+ const fam=p.fam.on?`Famiglia: ${1+p.fam.ad} adulti, ${p.fam.ra} ragazzi 6-13 anni, ${p.fam.pi} bambini 1-5 anni (uno di circa 1 anno e mezzo).`:"Cucina per una persona.";
+ return`Sei un cuoco di casa italiano. Proponi 3 ricette diverse tra loro per pranzo o cena, buone, realistiche e da fare a casa.
+${have.length?"Ingredienti disponibili in casa (usane il più possibile; puoi aggiungere poco altro di comune):\n- "+have.join("\n- "):"Nessun ingrediente indicato: proponi ricette semplici con ingredienti comuni."}
+${q?"Richiesta: "+q:""}
+${fam}
+Da escludere: ${p.escludi.length?p.escludi.join(", "):"niente"}.
+Una porzione da adulto deve stare intorno a ${Math.round(T.k/meals/10)*10} kcal e ${Math.round(T.p/meals)} g di proteine.
+Catalogo ingredienti dell'app (id: nome). Usa l'id quando l'ingrediente c'è; altrimenti id null con nome e valori per 100 g:
+${cat}
+
+Rispondi solo con un array JSON di 3 oggetti, così:
+[{"nome":"Pollo al curry con riso","minuti":35,"porta":"caldo","ingredienti":[{"id":"pollo_cr","g":150},{"id":null,"nome":"Curry in polvere","g":3,"kcal":325,"prot":14,"carb":25,"grassi":14,"reparto":"Dispensa","tag":[]}],"passaggi":["…","…"],"bambini":"…"}]
+Regole: "g" = grammi da crudo per UN adulto; "porta" = "caldo" se si porta in cabina e si scalda, "freddo" se è buono anche freddo, "no" se va mangiato a casa (pesce, fritti); "reparto" uno tra Carne e pesce, Frigo, Frutta e verdura, Pane e cereali, Dispensa; "tag" tra carne, maiale, pesce, latticini, uova; 3-6 passaggi brevi in italiano; "bambini" = un consiglio breve per i bambini piccoli (niente sale aggiunto, consistenze sicure). Niente sale e acqua tra gli ingredienti.`;
+}
+function aiToRecipes(arr){
+ if(!Array.isArray(arr))return[];
+ const REPS=["Carne e pesce","Frigo","Frutta e verdura","Pane e cereali","Dispensa"],TGS=["carne","maiale","pesce","latticini","uova"],num=v=>{const n=parseFloat(String(v).replace(",","."));return isFinite(n)?n:0;};
+ return arr.slice(0,3).map(r=>{
+  const it=[];(Array.isArray(r.ingredienti)?r.ingredienti:[]).forEach(x=>{const g=Math.round(num(x.g));if(!(g>0&&g<2000))return;
+   let id=x.id&&FOODS[x.id]?x.id:null;
+   if(!id&&x.nome){id=matchFood(String(x.nome))||Object.keys(FOODS).find(k=>norm(FOODS[k].n)===norm(x.nome))||null;
+    if(!id&&num(x.kcal)>=0&&x.kcal!=null){id="u"+Date.now().toString(36)+Math.random().toString(36).slice(2,5);
+     S.myFoods[id]={n:String(x.nome).slice(0,60),k:num(x.kcal),p:num(x.prot),c:num(x.carb),f:num(x.grassi),rep:REPS.includes(x.reparto)?x.reparto:"Dispensa",pk:[0,""],eur:0,fr:x.reparto==="Frigo"||x.reparto==="Carne e pesce"?1:0,tg:(Array.isArray(x.tag)?x.tag:[]).filter(t=>TGS.includes(t))};
+     FOODS[id]=S.myFoods[id];}}
+   if(id&&!it.some(y=>y[0]===id))it.push([id,g,autoRole(id)]);});
+  return{id:"ai",n:String(r.nome||"Ricetta di Claude").slice(0,80),min:Math.round(num(r.minuti))||30,porta:r.porta==="caldo"||r.porta==="freddo"?r.porta:null,
+   it,st:(Array.isArray(r.passaggi)?r.passaggi:[]).map(x=>String(x).slice(0,300)).slice(0,10),kid:String(r.bambini||"").slice(0,200),ai:true};
+ }).filter(r=>r.it.length>=2);
+}
+function bindAI(){
+ const q=$("#ai-q");if(q)q.oninput=()=>{RV.ai.q=q.value;};
+ const st=$("#ai-stop");if(st)st.onclick=()=>{if(RV.ai.ctl)RV.ai.ctl.abort();};
+ const go=$("#ai-go");if(!go||!SAMPLE)return;
+ go.onclick=async()=>{const A=RV.ai;A.busy=true;A.err="";A.ctl=new AbortController();vRicette();
+  try{const arr=await SAMPLE.json(aiPrompt(A.q.trim()),{signal:A.ctl.signal,cache:false});
+   const list=aiToRecipes(arr);save();
+   if(!list.length)A.err="Claude non ha dato ricette utilizzabili: riprova.";else{A.list=list;RV.open=null;}
+  }catch(e){A.err=e&&e.code==="cancelled"?"":(AI_ERR[e&&e.code]||"Qualcosa non ha funzionato: riprova tra poco.");}
+  A.busy=false;A.ctl=null;if(S.view==="ricette")vRicette();};
+}
+
 function vRicette(){
  if(RV.ing)return vIngForm();
  if(RV.draft)return vEditor();
@@ -1067,6 +1133,7 @@ function vRicette(){
    ${searchBox("fr","Cerca: pollo, zucchine, riso…")}
    <div class="chips" style="margin-top:10px">${S.frigo.map(id=>`<span class="chip on" data-unfr="${id}">${esc(FOODS[id]?FOODS[id].n:id)}<span class="x">✕</span></span>`).join("")}</div>
    ${S.frigo.length?`<button class="mini" id="fr-clr" style="margin-top:10px">Svuota</button>`:""}</div>`;
+  html+=aiCard();
   if(S.frigo.length){
    const sc=REC.map(R=>({R,m:matchRec(R)})).filter(x=>x.m.proOk&&x.m.pct>=40).sort((a,b)=>b.m.pct-a.m.pct||a.m.swaps.length-b.m.swaps.length).slice(0,12);
    const shown=RV.more?sc:sc.slice(0,5);
@@ -1090,6 +1157,7 @@ function vRicette(){
  $("#app").innerHTML=html;
  document.querySelectorAll("[data-rt]").forEach(c=>c.onclick=()=>{RV.tab=c.dataset.rt;RV.place=null;vRicette();});
  document.querySelectorAll("details[data-open]").forEach(d=>d.ontoggle=()=>{if(d.open)RV.open=d.dataset.open;else if(RV.open===d.dataset.open)RV.open=null;});
+ bindAI();
  bindSearch("fr",id=>{RV.more=false;if(!S.frigo.includes(id))S.frigo.push(id);save();vRicette();setTimeout(()=>{const i=$("#fr-q");if(i)i.focus();},0);});
  document.querySelectorAll("[data-unfr]").forEach(c=>c.onclick=()=>{S.frigo=S.frigo.filter(x=>x!==c.dataset.unfr);save();vRicette();});
  const clr=$("#fr-clr");if(clr)clr.onclick=()=>{S.frigo=[];save();vRicette();};
@@ -1097,7 +1165,7 @@ function vRicette(){
  document.querySelectorAll("[data-place]").forEach(b=>b.onclick=()=>{RV.place=b.dataset.place;vRicette();});
  document.querySelectorAll("[data-cancel]").forEach(b=>b.onclick=()=>{RV.place=null;vRicette();});
  document.querySelectorAll("[data-placego]").forEach(b=>b.onclick=()=>{let key=b.dataset.placego;
-  if(key.startsWith("idea"))key=saveIdea(findR(key));
+  if(isTemp(key))key=saveIdea(findR(key));
   const d=$("#pl-d").value,w=$("#pl-w").value;S.plan.fam[d][w]=key;RV.place=null;save();S.day=d;go("piano");});
  document.querySelectorAll("[data-tav]").forEach(b=>b.onclick=()=>{const d=b.closest("details");if(d)RV.open=d.dataset.open;S.tavola=clamp(tavola()+ +b.dataset.tav,1,40);save();const y=window.scrollY;vRicette();window.scrollTo(0,y);});
  document.querySelectorAll("[data-miss]").forEach(b=>b.onclick=()=>{const R=findR(b.dataset.miss),n=tavola();
