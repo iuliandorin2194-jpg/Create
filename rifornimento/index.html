@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Rifornimento">
-<meta name="app-version" content="1.9 · 14/11/2026">
+<meta name="app-version" content="1.10 · 14/11/2026">
 <title>Rifornimento – pasti a macro per chi viaggia</title>
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -1069,6 +1069,7 @@ function aiCard(){
  if(!SAMPLE)return SAMPLE_READY?`<div class="card"><div class="mm">🤖 <b>Ricette con Claude</b>: disponibili aprendo Rifornimento dal link di Claude.</div></div>`:"";
  return`<div class="card"><h2>🤖 Chiedi a Claude</h2>
   <div class="mm" style="margin-top:-4px">Claude crea ricette vere ${S.frigo.length?"con quello che hai":"anche partendo da un nome"}, con dosi per la tua famiglia e porzioni adatte ai tuoi obiettivi.</div>
+  <div class="mm">Usa la versione veloce di Claude e conta sul conto Claude di chi apre l'app. La stessa richiesta ripetuta entro 30 minuti non consuma di nuovo.</div>
   <label>Cosa ti va? (facoltativo)</label><input id="ai-q" value="${esc(A.q)}" placeholder="Es. veloce, messicano, lasagne, senza forno, da portare in cabina…" ${A.busy?"disabled":""}>
   <div class="btnrow">${A.busy?`<button class="btn ghost sm" id="ai-stop">■ Ferma</button>`:`<button class="btn sm" id="ai-go">✨ ${A.list.length?"Altre 3 ricette":"Crea 3 ricette con Claude"}</button>`}</div>
   ${A.busy?`<div class="status info" id="ai-msg">Claude sta pensando… (può volerci fino a un minuto)</div>`:""}
@@ -1078,7 +1079,7 @@ function aiCard(){
 }
 const AI_ERR={not_granted:"Hai scelto di non usare Claude in questa pagina.",sampling_disabled:"Claude non è disponibile per questo account.",rate_limited:"Troppe richieste o limite d'uso raggiunto: riprova più tardi.",
  session_expired:"Accedi di nuovo a Claude e riprova.",refused:"Claude non ha potuto rispondere a questa richiesta: prova a riformularla.",invalid_json:"Risposta non leggibile: tocca di nuovo per riprovare."};
-function aiPrompt(q){
+function aiPrompt(q,avoid){
  const p=S.profilo,T=targets(p,false),meals=p.pasti==4?3.5:3;
  const cat=Object.keys(FOODS).map(id=>id+": "+FOODS[id].n).join("\n");
  const have=S.frigo.filter(id=>FOODS[id]).map(id=>FOODS[id].n);
@@ -1086,6 +1087,7 @@ function aiPrompt(q){
  return`Sei un cuoco di casa italiano. Proponi 3 ricette diverse tra loro per pranzo o cena, buone, realistiche e da fare a casa.
 ${have.length?"Ingredienti disponibili in casa (usane il più possibile; puoi aggiungere poco altro di comune):\n- "+have.join("\n- "):"Nessun ingrediente indicato: proponi ricette semplici con ingredienti comuni."}
 ${q?"Richiesta: "+q:""}
+${avoid&&avoid.length?"Proponi ricette diverse da queste: "+avoid.join(", ")+".":""}
 ${fam}
 Da escludere: ${p.escludi.length?p.escludi.join(", "):"niente"}.
 Una porzione da adulto deve stare intorno a ${Math.round(T.k/meals/10)*10} kcal e ${Math.round(T.p/meals)} g di proteine.
@@ -1116,7 +1118,9 @@ function bindAI(){
  const st=$("#ai-stop");if(st)st.onclick=()=>{if(RV.ai.ctl)RV.ai.ctl.abort();};
  const go=$("#ai-go");if(!go||!SAMPLE)return;
  go.onclick=async()=>{const A=RV.ai;A.busy=true;A.err="";A.ctl=new AbortController();vRicette();
-  try{const arr=await SAMPLE.json(aiPrompt(A.q.trim()),{signal:A.ctl.signal,cache:false});
+  // versione veloce e leggera di Claude; la stessa richiesta entro 30 minuti riusa la risposta senza consumare
+  const avoid=A.list.map(r=>r.n);
+  try{const arr=await SAMPLE.json(aiPrompt(A.q.trim(),avoid),{signal:A.ctl.signal,modelTier:"quick",cache:{gcTime:30*60*1000}});
    const list=aiToRecipes(arr);save();
    if(!list.length)A.err="Claude non ha dato ricette utilizzabili: riprova.";else{A.list=list;RV.open=null;}
   }catch(e){A.err=e&&e.code==="cancelled"?"":(AI_ERR[e&&e.code]||"Qualcosa non ha funzionato: riprova tra poco.");}
