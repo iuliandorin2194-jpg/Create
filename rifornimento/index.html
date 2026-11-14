@@ -80,6 +80,19 @@ nav button b{display:block;font-size:20px;line-height:1.2}
 nav button.on{color:var(--acc)}
 .note{font-size:12px;color:var(--mut);margin:14px 4px 20px}
 .empty{color:var(--mut);text-align:center;padding:30px 10px}
+details{margin-top:6px;background:var(--card2);border-radius:10px;padding:2px 10px}
+details[open]{padding-bottom:10px}
+summary{cursor:pointer;color:var(--acc);font-size:13px;padding:7px 0;font-weight:600}
+.steps{padding-left:20px;font-size:14px;color:#cfd4d8;margin-top:8px}
+.steps li{margin:4px 0}
+.kid{font-size:13px;color:var(--tx);background:rgba(62,207,142,.1);border-radius:8px;padding:7px 9px;margin-top:8px}
+.leftover{font-size:12px;color:var(--acc);margin-top:4px}
+.stepper{display:flex;align-items:center;justify-content:space-between;padding:6px 0;font-size:14px}
+.stepper span:last-child{display:flex;align-items:center;gap:12px}
+.stepper button{width:34px;height:34px;border-radius:50%;border:1px solid var(--line);background:var(--card2);color:var(--tx);font-size:18px;cursor:pointer}
+.stepper b{min-width:14px;text-align:center}
+.famh{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:12px}
+.famh:first-of-type{margin-top:4px}
 </style>
 </head>
 <body>
@@ -133,7 +146,7 @@ const FOODS={
  cottage:{n:"Fiocchi di latte",k:100,p:12,c:3,f:4.5,fr:1,tg:["latticini"],rep:"Frigo",pk:[200,"vaschetta 200 g"],eur:1.6},
  mozz_l:{n:"Mozzarella light",k:165,p:20,c:1,f:9,fr:1,tg:["latticini"],rep:"Frigo",pk:[125,"busta 125 g"],eur:1.2},
  grana:{n:"Grana / Parmigiano",k:392,p:33,c:0,f:28,fr:1,tg:["latticini"],rep:"Frigo",pk:[0,""],eur:22},
- uova:{n:"Uova sode",k:143,p:12.6,c:.7,f:9.5,u:55,ul:["uovo","uova"],fr:1,tg:["uova"],rep:"Frigo",pk:[6,"confezione da 6"],eur:2.4},
+ uova:{n:"Uova",k:143,p:12.6,c:.7,f:9.5,u:55,ul:["uovo","uova"],fr:1,tg:["uova"],rep:"Frigo",pk:[6,"confezione da 6"],eur:2.4},
  bresaola:{n:"Bresaola",k:151,p:32,c:.5,f:2.6,fr:1,tg:["carne"],rep:"Frigo",pk:[80,"vaschetta 80 g"],eur:4.2},
  tacchino:{n:"Fesa di tacchino a fette",k:105,p:22,c:1,f:1.5,fr:1,tg:["carne"],rep:"Frigo",pk:[100,"vaschetta 100 g"],eur:2.3},
  cotto:{n:"Prosciutto cotto alta qualità",k:145,p:19,c:1,f:7,fr:1,tg:["maiale","carne"],rep:"Frigo",pk:[100,"vaschetta 100 g"],eur:2.6},
@@ -145,7 +158,25 @@ const FOODS={
  carote:{n:"Carote baby",k:41,p:.9,c:10,f:.2,rep:"Frutta e verdura",pk:[300,"busta"],eur:1.3},
  banana:{n:"Banana",k:89,p:1.1,c:23,f:.3,u:120,ul:["banana","banane"],rep:"Frutta e verdura",pk:[0,""],eur:.3},
  mela:{n:"Mela",k:52,p:.3,c:14,f:.2,u:180,ul:["mela","mele"],rep:"Frutta e verdura",pk:[0,""],eur:.4},
- arancia:{n:"Arancia",k:47,p:.9,c:12,f:.1,u:160,ul:["arancia","arance"],rep:"Frutta e verdura",pk:[0,""],eur:.35}
+ arancia:{n:"Arancia",k:47,p:.9,c:12,f:.1,u:160,ul:["arancia","arance"],rep:"Frutta e verdura",pk:[0,""],eur:.35},
+ // ingredienti da cucinare a casa (pesi da crudo)
+ cosce:{n:"Fusi/sovracosce di pollo (senza pelle)",k:130,p:19,c:0,f:6,fr:1,tg:["carne"],rep:"Carne e pesce",pk:[0,""],eur:7},
+ pollo_cr:{n:"Petto di pollo",k:110,p:23,c:0,f:1.5,fr:1,tg:["carne"],rep:"Carne e pesce",pk:[0,""],eur:11},
+ tacch_cr:{n:"Fesa di tacchino",k:107,p:24,c:0,f:1,fr:1,tg:["carne"],rep:"Carne e pesce",pk:[0,""],eur:12},
+ macinato:{n:"Macinato di manzo magro",k:150,p:20,c:0,f:8,fr:1,tg:["carne"],rep:"Carne e pesce",pk:[0,""],eur:13},
+ lonza:{n:"Lonza di maiale",k:140,p:21,c:0,f:6,fr:1,tg:["maiale","carne"],rep:"Carne e pesce",pk:[0,""],eur:10},
+ merluzzo:{n:"Filetti di merluzzo",k:80,p:18,c:0,f:.7,fr:1,tg:["pesce"],rep:"Carne e pesce",pk:[0,""],eur:14},
+ salmone_f:{n:"Salmone fresco",k:200,p:20,c:0,f:13,fr:1,tg:["pesce"],rep:"Carne e pesce",pk:[0,""],eur:22},
+ ricotta:{n:"Ricotta",k:140,p:9,c:4,f:10,fr:1,tg:["latticini"],rep:"Frigo",pk:[250,"vaschetta 250 g"],eur:1.6},
+ riso:{n:"Riso (secco)",k:355,p:7,c:79,f:.6,ht:1,rep:"Dispensa",pk:[1000,"pacco 1 kg"],eur:2.3},
+ orzo:{n:"Orzo perlato (secco)",k:350,p:10,c:73,f:1.5,ht:1,rep:"Dispensa",pk:[500,"pacco 500 g"],eur:1.6},
+ passata:{n:"Passata di pomodoro",k:36,p:1.4,c:7,f:.2,rep:"Dispensa",pk:[700,"bottiglia 700 g"],eur:1.1},
+ piselli:{n:"Piselli in scatola",k:70,p:5,c:10,f:.5,rep:"Dispensa",pk:[240,"barattolo"],eur:.9},
+ patate:{n:"Patate",k:77,p:2,c:17,f:.1,rep:"Frutta e verdura",pk:[0,""],eur:1.5},
+ zucchine:{n:"Zucchine",k:17,p:1.2,c:3,f:.3,fr:1,rep:"Frutta e verdura",pk:[0,""],eur:2.5},
+ peperoni:{n:"Peperoni",k:26,p:1,c:6,f:.3,fr:1,rep:"Frutta e verdura",pk:[0,""],eur:3},
+ spinaci:{n:"Spinaci freschi",k:23,p:2.9,c:3.6,f:.4,fr:1,rep:"Frutta e verdura",pk:[0,""],eur:4},
+ cipolla:{n:"Cipolle",k:40,p:1,c:9,f:.1,rep:"Frutta e verdura",pk:[0,""],eur:1.6}
 };
 // ruolo: P = si scala per le proteine, C = si scala per le calorie, F = porzione fissa
 const MEALS=[
@@ -186,6 +217,49 @@ const MEALS=[
  {id:"s7",s:["spu"],n:"Carne secca e mela",it:[["jerky",40,"P"],["mela",180,"F"]]},
  {id:"s8",s:["spu"],n:"Ceci tostati e arancia",it:[["ceci_t",40,"P"],["arancia",160,"F"]]}
 ];
+// Ricette di casa: dosi per 1 adulto, pesi da crudo. porta = si può portare in cabina ("caldo" = da scaldare, "freddo" = buono anche freddo).
+const REC=[
+ {id:"r1",s:["pra","cen"],n:"Pollo al forno con patate",min:60,porta:"caldo",it:[["cosce",200,"P"],["patate",250,"C"],["olio",10,"C"],["cipolla",30,"F"]],
+  st:["Accendi il forno a 200 °C.","Taglia le patate a spicchi e la cipolla a fette, condisci con olio, rosmarino e poco sale.","Aggiungi il pollo nella teglia e cuoci 45–50 minuti, girando a metà."],kid:"Pollo sfilacciato e patate schiacciate, senza sale."},
+ {id:"r2",s:["pra","cen"],n:"Pasta al ragù",min:50,porta:"caldo",it:[["pasta",90,"C"],["macinato",100,"P"],["passata",120,"F"],["cipolla",30,"F"],["olio",8,"C"],["grana",10,"P"]],
+  st:["Soffriggi la cipolla tritata nell'olio, aggiungi il macinato e rosolalo.","Versa la passata e cuoci 30–40 minuti a fuoco basso.","Cuoci la pasta, condisci con il ragù e il grana."],kid:"Pasta corta piccola; metti da parte il suo sugo prima di salare."},
+ {id:"r3",s:["pra","cen"],n:"Polpette al sugo con pane",min:45,porta:"caldo",it:[["macinato",130,"P"],["grana",10,"P"],["pane",70,"C"],["passata",150,"F"],["olio",5,"C"]],
+  st:["Ammolla in acqua un pezzo del pane (circa un quarto), strizzalo e impastalo con macinato e grana.","Forma le polpette e cuocile 20 minuti nella passata con l'olio.","Servi con il resto del pane."],kid:"Polpette piccole e morbide, schiacciate se serve."},
+ {id:"r4",s:["pra","cen"],n:"Frittata di zucchine e patate",min:30,porta:"freddo",it:[["uova",165,"P"],["zucchine",150,"F"],["patate",150,"C"],["grana",10,"P"],["olio",8,"C"],["pane",50,"C"]],
+  st:["Taglia le patate a cubetti piccoli e le zucchine a rondelle, cuocile in padella con l'olio 10–12 minuti.","Sbatti le uova con il grana e versale sulle verdure.","Cuoci a fuoco basso col coperchio 8 minuti, gira e finisci in 3–4 minuti. Servi con il pane."],kid:"Ben cotta, a cubetti."},
+ {id:"r5",s:["pra","cen"],n:"Riso con pollo e zucchine",min:30,porta:"caldo",it:[["riso",80,"C"],["pollo_cr",150,"P"],["zucchine",150,"F"],["olio",10,"C"]],
+  st:["Cuoci il riso in acqua salata.","Intanto cuoci il pollo a cubetti in padella con l'olio, aggiungi le zucchine e cuoci 10 minuti.","Unisci il riso scolato e mescola."],kid:"Pollo a pezzettini piccoli, zucchine ben cotte."},
+ {id:"r6",s:["pra","cen"],n:"Merluzzo al forno con patate",min:40,porta:null,it:[["merluzzo",200,"P"],["patate",250,"C"],["pomodorini",100,"F"],["olio",10,"C"]],
+  st:["Forno a 200 °C. Patate a fettine sottili in teglia con l'olio: 20 minuti.","Aggiungi il merluzzo e i pomodorini tagliati e cuoci altri 15 minuti."],kid:"Controlla bene le lische e sbriciola il pesce."},
+ {id:"r7",s:["pra","cen"],n:"Pasta e lenticchie",min:30,porta:"caldo",it:[["pasta",70,"C"],["lentic",200,"P"],["passata",80,"F"],["cipolla",20,"F"],["grana",10,"P"],["olio",8,"C"]],
+  st:["Soffriggi la cipolla nell'olio, aggiungi lenticchie scolate, passata e acqua calda.","Quando bolle butta la pasta corta e cuocila lì, mescolando spesso.","Spegni e aggiungi il grana."],kid:"Schiaccia un po' le lenticchie con la forchetta."},
+ {id:"r8",s:["pra","cen"],n:"Insalata di riso",min:25,porta:"freddo",it:[["riso",80,"C"],["tonno",112,"P"],["uova",55,"P"],["piselli",60,"F"],["pomodorini",80,"F"],["olio",10,"C"]],
+  st:["Cuoci il riso, scolalo e raffreddalo sotto l'acqua.","Rassoda le uova (9 minuti) e tagliale.","Unisci tonno, piselli, pomodorini, uova e olio. Tieni in frigo."],kid:"Pomodorini tagliati in quattro, uovo sbriciolato."},
+ {id:"r9",s:["pra","cen"],n:"Insalata d'orzo con ceci e verdure",min:35,porta:"freddo",it:[["orzo",80,"C"],["ceci",120,"P"],["peperoni",100,"F"],["zucchine",80,"F"],["grana",10,"P"],["olio",10,"C"]],
+  st:["Cuoci l'orzo 25–30 minuti, scolalo e raffreddalo.","Taglia peperoni e zucchine a cubetti e saltali 5 minuti in padella.","Unisci ceci, verdure, grana a scaglie e olio."],kid:"Ceci schiacciati e verdure ben cotte."},
+ {id:"r10",s:["pra","cen"],n:"Spezzatino di tacchino con piselli e riso",min:40,porta:"caldo",it:[["tacch_cr",150,"P"],["piselli",120,"F"],["riso",70,"C"],["cipolla",30,"F"],["olio",8,"C"]],
+  st:["Rosola cipolla e tacchino a cubetti nell'olio.","Aggiungi i piselli e un bicchiere d'acqua, cuoci coperto 25 minuti.","Servi con il riso lessato."],kid:"Tacchino a pezzettini, piselli schiacciati."},
+ {id:"r11",s:["pra","cen"],n:"Salmone al forno con patate e zucchine",min:35,porta:null,it:[["salmone_f",150,"P"],["patate",200,"C"],["zucchine",150,"F"],["olio",5,"C"]],
+  st:["Forno a 200 °C: patate e zucchine a pezzi con l'olio, 20 minuti.","Aggiungi il salmone e cuoci altri 12–15 minuti."],kid:"Controlla le lische, salmone ben cotto."},
+ {id:"r12",s:["pra","cen"],n:"Lonza in padella con patate e spinaci",min:35,porta:"caldo",it:[["lonza",150,"P"],["patate",220,"C"],["spinaci",150,"F"],["olio",10,"C"]],
+  st:["Lessa le patate a pezzi per 15 minuti.","Cuoci le fette di lonza in padella con metà dell'olio, 3–4 minuti per lato.","Salta gli spinaci nella stessa padella con l'olio rimasto."],kid:"Carne tagliata finissima, spinaci tritati."},
+ {id:"r13",s:["pra","cen"],n:"Pasta fredda tonno, pomodorini e mozzarella",min:20,porta:"freddo",it:[["pasta",90,"C"],["tonno",112,"P"],["mozz_l",60,"P"],["pomodorini",150,"F"],["olio",10,"C"]],
+  st:["Cuoci la pasta, scolala e raffreddala sotto l'acqua.","Unisci tonno, pomodorini tagliati, mozzarella a cubetti e olio. Tieni in frigo."],kid:"Pomodorini in quattro, mozzarella a pezzetti."},
+ {id:"r14",s:["pra","cen"],n:"Pasta al forno ricotta e spinaci",min:50,porta:"caldo",it:[["pasta",90,"C"],["ricotta",120,"P"],["spinaci",150,"F"],["mozz_l",50,"P"],["grana",15,"P"],["olio",5,"C"]],
+  st:["Cuoci gli spinaci in padella con l'olio e tritali.","Cuoci la pasta molto al dente e mescolala con ricotta, spinaci e metà del grana.","Metti in teglia con la mozzarella a cubetti e il resto del grana: 20 minuti a 200 °C."],kid:"Va benissimo così, tagliata a pezzetti."},
+ {id:"r15",s:["pra","cen"],n:"Pollo alla piastra con insalata e pane",min:20,porta:"freddo",it:[["pollo_cr",160,"P"],["pane",80,"C"],["insalata",80,"F"],["pomodorini",100,"F"],["olio",10,"C"]],
+  st:["Batti un po' il petto di pollo e cuocilo sulla piastra 4–5 minuti per lato.","Taglialo a strisce e servilo con insalata, pomodorini, olio e pane."],kid:"Pollo a pezzettini piccoli, pane morbido."},
+ {id:"r16",s:["pra","cen"],n:"Minestrone di legumi e orzo",min:50,porta:"caldo",it:[["orzo",50,"C"],["fagioli",150,"P"],["ceci",100,"P"],["patate",100,"C"],["zucchine",100,"F"],["carote",80,"F"],["passata",60,"F"],["grana",10,"P"],["olio",8,"C"]],
+  st:["Taglia patate, zucchine e carote a cubetti e falle insaporire nell'olio.","Aggiungi passata, legumi scolati e acqua (circa 1,5 litri ogni 4 persone), poi l'orzo.","Cuoci 35–40 minuti e aggiungi il grana alla fine."],kid:"Frulla o schiaccia la sua porzione."},
+ {id:"r17",s:["pra","cen"],n:"Pasta e ceci",min:30,porta:"caldo",it:[["pasta",70,"C"],["ceci",200,"P"],["passata",60,"F"],["cipolla",20,"F"],["olio",10,"C"]],
+  st:["Soffriggi la cipolla nell'olio, aggiungi ceci scolati, passata e acqua calda.","Schiaccia una parte dei ceci per rendere cremoso.","Butta la pasta corta e cuocila lì, mescolando spesso. Un filo d'olio a crudo alla fine."],kid:"Schiaccia bene i ceci della sua porzione."},
+ {id:"r18",s:["pra","cen"],n:"Uova al pomodoro con pane",min:20,porta:null,it:[["uova",165,"P"],["passata",150,"F"],["cipolla",20,"F"],["pane",80,"C"],["olio",8,"C"]],
+  st:["Soffriggi la cipolla nell'olio, aggiungi la passata e cuoci 10 minuti.","Fai dei buchi nel sugo, rompici le uova e cuoci coperto 6–8 minuti.","Servi con il pane per la scarpetta."],kid:"Uovo ben cotto (tuorlo sodo), pane morbido."},
+ {id:"r19",s:["pra","cen"],n:"Insalata di patate, fagioli e uova",min:30,porta:"freddo",it:[["patate",200,"C"],["fagioli",150,"P"],["uova",55,"P"],["cipolla",20,"F"],["pomodorini",100,"F"],["olio",10,"C"]],
+  st:["Lessa le patate a pezzi 15 minuti e rassoda le uova (9 minuti).","Unisci patate, fagioli scolati, uova a spicchi, pomodorini e cipolla affettata sottile.","Condisci con olio, sale e origano."],kid:"Senza cipolla cruda, patate e fagioli schiacciati."}
+];
+const meal=id=>MEALS.find(x=>x.id===id)||REC.find(x=>x.id===id);
+const isRec=id=>!!id&&REC.some(x=>x.id===id);
 const SLOTS={col:"Colazione",pra:"Pranzo",cen:"Cena",spu:"Spuntino"};
 const DAYS=[["lun","Lun"],["mar","Mar"],["mer","Mer"],["gio","Gio"],["ven","Ven"],["sab","Sab"],["dom","Dom"]];
 const ESCL=["carne","maiale","pesce","latticini","uova"];
@@ -212,8 +286,9 @@ function targets(pr,rest){
  if(pr.protMan>0)p=+pr.protMan;
  return{k:Math.round(k/10)*10,p:Math.round(p)};
 }
-const isRest=(pr,d)=>(pr.riposo||[]).includes(d);
-const Td=(pr,d)=>targets(pr,isRest(pr,d));
+// giorno fermo: segnato come riposo, oppure giorno a casa
+const isRest=(pr,d,home)=>!!home||(pr.riposo||[]).includes(d);
+const Td=(pr,d,home)=>targets(pr,isRest(pr,d,home));
 function macros(id,g){const f=FOODS[id],x=g/100;return{k:f.k*x,p:f.p*x,c:f.c*x,f:f.f*x};}
 function sum(list){const t={k:0,p:0,c:0,f:0};list.forEach(i=>{const m=macros(i.id,i.g);t.k+=m.k;t.p+=m.p;t.c+=m.c;t.f+=m.f;});return t;}
 function step(id,g){const f=FOODS[id];if(f.u)return f.u;return g<=40?5:10;}
@@ -223,7 +298,7 @@ const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
 // Calcola le grammature di un giorno per centrare kcal e proteine
 function solveDay(mealIds,T){
  const items=[];
- mealIds.forEach((mid,mi)=>{const m=MEALS.find(x=>x.id===mid);if(!m)return;
+ mealIds.forEach((mid,mi)=>{const m=meal(mid);if(!m)return;
   m.it.forEach(([id,g,r])=>items.push({mi,id,base:g,g,r}));});
  const grp=r=>sum(items.filter(i=>i.r===r).map(i=>({id:i.id,g:i.base})));
  const P=grp("P"),C=grp("C"),F=grp("F");
@@ -265,21 +340,43 @@ function pickMeal(slot,pr,avoid,r){
  if(fresh.length)pool=fresh;
  return pool[Math.floor(r()*pool.length)].id;
 }
+// Famiglia
+const famOk=(r,pr)=>r.it.every(([id])=>!(FOODS[id].tg||[]).some(t=>pr.escludi.includes(t)));
+const portable=(r,pr)=>!!r.porta&&pr.frigo&&(r.porta==="freddo"||pr.caldo);
+const famCoef=pr=>pr.fam.ad+pr.fam.ra*.75+pr.fam.pi*.4;
+const famN=pr=>pr.fam.ad+pr.fam.ra+pr.fam.pi;
+// "@dom:cen" = il piatto di casa di domenica a cena
+function resolveIds(ids,fam){return ids.map(x=>x&&x[0]==="@"?(fam&&fam[x.slice(1,4)]?fam[x.slice(1,4)][x.slice(5)]||null:null):x);}
 function generatePlan(pr,seed){
- const r=rng(seed),plan={},recent={},slots=slotsFor(pr);
- pr.giorni.forEach(d=>{
-  const T=Td(pr,d);let best=null;
+ const r=rng(seed),plan={},recent={},slots=slotsFor(pr),F=!!(pr.fam&&pr.fam.on),cab=pr.giorni;
+ const days=F?DAYS.map(x=>x[0]):cab.slice(),home=d=>F&&!cab.includes(d);
+ let fam=null;const refs={},cook={};
+ if(F){
+  // il giorno prima di ogni partenza si cucina in più per i primi pasti in cabina
+  if(pr.fam.porta>0&&pr.frigo&&cab.length<7)cab.forEach(d=>{const i=DAYS.findIndex(x=>x[0]===d),prev=DAYS[(i+6)%7][0];
+   if(cab.includes(prev))return;cook[prev]=1;const ref={pra:"@"+prev+":cen",cen:"@"+prev+":pra"};refs[d]=ref;
+   if(pr.fam.porta>=4){const nx=DAYS[(i+1)%7][0];if(cab.includes(nx))refs[nx]=ref;}});
+  fam={};const used=[];
+  days.forEach(d=>{fam[d]={};["pra","cen"].forEach(w=>{
+   const base=REC.filter(x=>x.s.includes(w)&&famOk(x,pr));let pool=cook[d]?base.filter(x=>portable(x,pr)):base;if(!pool.length)pool=base;
+   const fr=pool.filter(x=>!used.includes(x.id)),pk=fr.length?fr:pool,c=pk.length?pk[Math.floor(r()*pk.length)]:null;
+   fam[d][w]=c?c.id:null;if(c)used.push(c.id);});});
+ }
+ days.forEach(d=>{
+  const h=home(d),T=Td(pr,d,h),hp=h?Object.assign({},pr,{frigo:true,caldo:true}):pr;
+  const fixed=h?{pra:"@"+d+":pra",cen:"@"+d+":cen"}:(refs[d]||{});
+  let best=null;
   for(let a=0;a<25;a++){
    const used=[];
-   const ids=slots.map(s=>{const av=(a<15?(recent[s]||[]):[]).concat(used);const id=pickMeal(s,pr,av,r);if(id)used.push(id);return id;});
-   const res=solveDay(ids.filter(Boolean),T),sc=(ids.some(x=>!x)?5000:0)+(res.pOk?0:1000)+Math.abs(res.tot.k-T.k);
+   const ids=slots.map(s=>{if(fixed[s])return fixed[s];const av=(a<15?(recent[s]||[]):[]).concat(used);const id=pickMeal(s,hp,av,r);if(id)used.push(id);return id;});
+   const rids=resolveIds(ids,fam),res=solveDay(rids.filter(Boolean),T),sc=(rids.some(x=>!x)?5000:0)+(res.pOk?0:1000)+Math.abs(res.tot.k-T.k);
    if(!best||sc<best.sc)best={ids,sc};
-   if(res.pOk&&res.kOk&&!ids.some(x=>!x))break;
+   if(res.pOk&&res.kOk&&!rids.some(x=>!x))break;
   }
   plan[d]=best.ids;
-  slots.forEach((s,i)=>{recent[s]=((recent[s]||[]).concat(best.ids[i])).slice(-2);});
+  slots.forEach((s,i)=>{if(!fixed[s])recent[s]=((recent[s]||[]).concat(best.ids[i])).slice(-2);});
  });
- return plan;
+ return{days:plan,fam,home:days.filter(home)};
 }
 function fmtQty(id,g){const f=FOODS[id];if(f.u){const n=Math.round(g/f.u);return n+" "+(n===1?f.ul[0]:f.ul[1])+(f.ul[0]==="scatoletta"?" ("+g+" g)":"");}return g+(f.ml?" ml":" g");}
 const isFresh=id=>!!FOODS[id].fr||FOODS[id].rep==="Frutta e verdura";
@@ -290,28 +387,34 @@ function unitLbl(id){const f=FOODS[id];return f.pk[0]?"a "+f.pk[1]:f.u?"a "+f.ul
 function priceOf(id){const m=S.prezzi[id];if(m&&m.v>0)return m.v;return Math.round(FOODS[id].eur*(1+(+S.corr||0)/100)*100)/100;}
 const eur=v=>"€ "+v.toFixed(2).replace(".",",");
 
-// days = giorni da includere, inc(d,id) = se quell'alimento di quel giorno va in questa lista
-function shopping(planDays,days,pr,inc){
- const tot={};
- days.forEach(d=>{const s=solveDay(planDays[d].filter(Boolean),Td(pr,d));s.items.forEach(i=>{if(inc(d,i.id))tot[i.id]=(tot[i.id]||0)+i.g;});});
+// entries = [{id,g}] già filtrate: somma, arrotonda a pezzi/confezioni e calcola il costo
+function shopping(entries){
+ const tot={};entries.forEach(e=>{tot[e.id]=(tot[e.id]||0)+e.g;});
  return Object.entries(tot).map(([id,g])=>{const f=FOODS[id],pv=priceOf(id);let q,cost;
-  if(f.u){const n=Math.round(g/f.u);q=n+" "+(n===1?f.ul[0]:f.ul[1]);
+  if(f.u){const n=Math.max(1,Math.round(g/f.u));q=n+" "+(n===1?f.ul[0]:f.ul[1]);
    if(f.pk[0]){const k=Math.ceil(n/f.pk[0]);q+=" → "+k+"× "+f.pk[1];cost=k*pv;}else cost=n*pv;}
-  else{q=Math.round(g)+(f.ml?" ml":" g");
+  else{q=fmtW(id,g);
    if(f.pk[0]){const k=Math.ceil(g/f.pk[0]);q+=" → "+k+"× "+f.pk[1];cost=k*pv;}else cost=g/1000*pv;}
   return{id,n:f.n,rep:f.rep,q,cost};}).sort((a,b)=>a.rep.localeCompare(b.rep)||a.n.localeCompare(b.n));
 }
+function fmtW(id,g){const f=FOODS[id],u=f.ml?["ml","l"]:["g","kg"];
+ if(g>=1000)return(Math.round(g/100)/10).toString().replace(".",",")+" "+u[1];
+ const st=g<100?5:10;return Math.max(st,Math.round(g/st)*st)+" "+u[0];}
+function fmtTot(id,g){const f=FOODS[id];if(f.u){const n=Math.max(1,Math.round(g/f.u));return n+" "+(n===1?f.ul[0]:f.ul[1]);}return fmtW(id,g);}
 
 /* ===== STATO ===== */
 const KEY="rifornimento_v1";
-const DEF={profilo:{sesso:"m",eta:32,peso:80,altezza:178,att:1.3,attR:1.2,obi:"man",pasti:4,frigo:true,caldo:false,escludi:[],giorni:["mar","mer","gio","ven","sab"],riposo:[],kcalMan:0,protMan:0},
+const DEF={profilo:{sesso:"m",eta:32,peso:80,altezza:178,att:1.3,attR:1.2,obi:"man",pasti:4,frigo:true,caldo:false,escludi:[],giorni:["mar","mer","gio","ven","sab"],riposo:[],kcalMan:0,protMan:0,
+  fam:{on:true,ad:3,ra:1,pi:1,porta:2}},
  plan:null,day:null,check:{},eaten:{},split:false,prezzi:{},corr:0,view:"profilo"};
-const sig=p=>JSON.stringify([+p.pasti,!!p.frigo,!!p.caldo,p.escludi.slice().sort(),p.giorni]);
+const sig=p=>JSON.stringify([+p.pasti,!!p.frigo,!!p.caldo,p.escludi.slice().sort(),p.giorni,!!p.fam.on,p.fam.on?+p.fam.porta:0]);
 function normalize(x){
  x=Object.assign(JSON.parse(JSON.stringify(DEF)),x||{});
  x.profilo=Object.assign({},DEF.profilo,x.profilo);
+ x.profilo.fam=Object.assign({},DEF.profilo.fam,x.profilo.fam);
  // piano della versione precedente: {giorno:[pasti]}
- if(x.plan&&!x.plan.days)x.plan={days:x.plan,slots:slotsFor(x.profilo),sig:sig(x.profilo)};
+ if(x.plan&&!x.plan.days)x.plan={days:x.plan,slots:slotsFor(x.profilo),sig:"old",fam:null,home:[]};
+ if(x.plan){x.plan.fam=x.plan.fam||null;x.plan.home=x.plan.home||[];}
  ["check","eaten","prezzi"].forEach(k=>{if(!x[k]||typeof x[k]!=="object")x[k]={};});
  return x;
 }
@@ -323,12 +426,30 @@ const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const dayLbl=d=>DAYS.find(x=>x[0]===d)[1];
 
-function newPlan(){const p=S.profilo;S.plan={days:generatePlan(p,Date.now()),slots:slotsFor(p),sig:sig(p)};S.day=p.giorni[0];S.check={};S.eaten={};save();}
+function newPlan(){const p=S.profilo,g=generatePlan(p,Date.now());S.plan=Object.assign(g,{slots:slotsFor(p),sig:sig(p)});
+ const today=DAYS[(new Date().getDay()+6)%7][0];S.day=g.days[today]?today:Object.keys(g.days)[0];S.check={};S.eaten={};save();}
+const planHome=d=>!!(S.plan&&S.plan.home&&S.plan.home.includes(d));
+const TdP=d=>Td(S.profilo,d,planHome(d));
+// pasti del giorno con le grammature calcolate, divise per slot
+function daySolve(d){
+ const ids=S.plan.days[d],rids=resolveIds(ids,S.plan.fam),present=rids.map((x,i)=>x?i:-1).filter(i=>i>=0),T=TdP(d),r=solveDay(rids.filter(Boolean),T);
+ return{ids,rids,T,r,slotItems:ids.map((_,mi)=>{const k=present.indexOf(mi);return k<0?[]:r.items.filter(i=>i.mi===k);})};
+}
+function solver(){const c={};return d=>c[d]||(c[d]=daySolve(d));}
+// dosi totali di un piatto di casa: famiglia + tua porzione (se sei a casa) + porzioni per la cabina
+function famTotals(d,w,get){
+ const p=S.profilo,R=meal(S.plan.fam[d][w]),co=famCoef(p),tot={};let people=famN(p);const extra=[];
+ R.it.forEach(([id,g])=>{tot[id]=(tot[id]||0)+g*co;});
+ Object.keys(S.plan.days).forEach(x=>S.plan.days[x].forEach((v,mi)=>{if(v!=="@"+d+":"+w)return;
+  get(x).slotItems[mi].forEach(i=>{tot[i.id]=(tot[i.id]||0)+i.g;});
+  if(x===d)people++;else extra.push(dayLbl(x)+" "+SLOTS[S.plan.slots[mi]].toLowerCase());}));
+ return{R,tot,people,extra};
+}
 function staleBox(){
  if(!S.plan||S.plan.sig===sig(S.profilo))return"";
  return`<div class="status warn">Hai cambiato pasti, attrezzatura, esclusioni o giorni: il piano non rispecchia più le impostazioni.<button class="btn sm" id="stale">Rigenera il piano</button></div>`;
 }
-function bindStale(after){const b=$("#stale");if(b)b.onclick=()=>{if(!S.profilo.giorni.length){go("profilo");return;}newPlan();after();};}
+function bindStale(after){const b=$("#stale");if(b)b.onclick=()=>{if(!S.profilo.giorni.length&&!S.profilo.fam.on){go("profilo");return;}newPlan();after();};}
 
 function go(v){S.view=v;save();render();window.scrollTo(0,0);}
 document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>go(b.dataset.v));
@@ -341,7 +462,8 @@ function render(){
 function vProfilo(){
  const p=S.profilo,A=targets(Object.assign({},p,{kcalMan:0,protMan:0}),false),W=targets(p,false),R=targets(p,true);
  const ch=(name,val,lab,on)=>`<span class="chip ${on?"on":""}" data-${name}="${val}">${lab}</span>`;
- const restIn=p.giorni.filter(d=>p.riposo.includes(d));
+ const F=p.fam,restIn=p.giorni.filter(d=>p.riposo.includes(d)),homeN=F.on?7-p.giorni.length:0;
+ const stp=(k,l,v)=>`<div class="stepper"><span>${l}</span><span><button data-st="${k}" data-dv="-1" aria-label="meno">−</button><b>${v}</b><button data-st="${k}" data-dv="1" aria-label="più">+</button></span></div>`;
  $("#app").innerHTML=`
  <div class="card"><h2>Chi sei</h2>
   <div class="row"><div><label>Sesso</label><select id="sesso"><option value="m">Uomo</option><option value="f">Donna</option></select></div>
@@ -357,7 +479,7 @@ function vProfilo(){
  </div>
  <div class="card"><h2>Obiettivi giornalieri</h2>
   <div class="targets"><div class="big">${W.k}<span> kcal</span></div><div class="big">${W.p}<span> g proteine</span></div></div>
-  <div class="sub">Giorni di lavoro${restIn.length?` · giorni fermi: <b>${R.k} kcal</b>, ${R.p} g proteine`:""}</div>
+  <div class="sub">Giorni di lavoro${restIn.length||homeN?` · ${homeN?"giorni a casa o fermi":"giorni fermi"}: <b>${R.k} kcal</b>, ${R.p} g proteine`:""}</div>
   <div class="row"><div><label>Kcal manuali (0 = auto, ${A.k})</label><input id="kcalMan" type="number" inputmode="numeric" value="${p.kcalMan||0}"></div>
   <div><label>Proteine manuali (0 = auto, ${A.p})</label><input id="protMan" type="number" inputmode="numeric" value="${p.protMan||0}"></div></div>
  </div>
@@ -365,8 +487,16 @@ function vProfilo(){
   <label>Pasti al giorno</label><div class="chips">${ch("pasti",3,"3 pasti",p.pasti==3)}${ch("pasti",4,"3 + spuntino",p.pasti==4)}</div>
   <label>Attrezzatura</label><div class="chips">${ch("eq","frigo","❄ Frigo / borsa frigo",p.frigo)}${ch("eq","caldo","♨ Scaldavivande / fornelletto",p.caldo)}</div>
   <label>Escludi</label><div class="chips">${ESCL.map(t=>ch("esc",t,t==="carne"?"Carne (tutta)":t[0].toUpperCase()+t.slice(1),p.escludi.includes(t))).join("")}</div>
-  <label>Giorni da pianificare</label><div class="chips">${DAYS.map(([d,l])=>ch("day",d,l,p.giorni.includes(d))).join("")}</div>
-  ${p.giorni.length?`<label>Di questi, quali sono giorni fermi? 💤</label><div class="chips">${p.giorni.map(d=>ch("rest",d,dayLbl(d),p.riposo.includes(d))).join("")}</div>`:""}
+  <label>${F.on?"Giorni in cabina (gli altri sei a casa)":"Giorni da pianificare"}</label><div class="chips">${DAYS.map(([d,l])=>ch("day",d,l,p.giorni.includes(d))).join("")}</div>
+  ${p.giorni.length?`<label>Di questi, quali sono giorni fermi${F.on?" fuori casa":""}? 💤</label><div class="chips">${p.giorni.map(d=>ch("rest",d,dayLbl(d),p.riposo.includes(d))).join("")}</div>`:""}
+ </div>
+ <div class="card"><h2>Famiglia 🏠</h2>
+  <div class="chips">${ch("famon",1,"Pianifica anche i pasti di casa",F.on)}</div>
+  ${F.on?`<div class="mm">Pranzo e cena di casa per tutta la settimana, con ricette e dosi per tutti. Le tue porzioni sono calcolate sui tuoi obiettivi.</div>
+  ${stp("ad","Adulti oltre a te",F.ad)}${stp("ra","Ragazzi 6–13 anni",F.ra)}${stp("pi","Bambini 1–5 anni",F.pi)}
+  <label>Porzioni di casa da portare in cabina</label>
+  <div class="chips">${ch("porta",0,"Nessuna",F.porta==0)}${ch("porta",2,"2 · primo giorno",F.porta==2)}${ch("porta",4,"4 · primi due giorni",F.porta==4)}</div>
+  <div class="mm">Il giorno prima della partenza si cucinano pranzo e cena di casa con porzioni in più per te: niente freezer, si mangiano entro 2 giorni, scaldate nello scaldavivande.${F.porta>0&&!p.frigo?" <b>Servono frigo o borsa frigo:</b> attivali sopra.":""}</div>`:""}
  </div>
  ${staleBox()}
  <button class="btn" id="gen">${S.plan?"Rigenera il piano":"Genera il piano"}</button>
@@ -388,8 +518,11 @@ function vProfilo(){
  document.querySelectorAll("[data-eq]").forEach(c=>c.onclick=()=>{p[c.dataset.eq]=!p[c.dataset.eq];save();vProfilo();});
  document.querySelectorAll("[data-esc]").forEach(c=>c.onclick=()=>{p.escludi=tog(p.escludi,c.dataset.esc);save();vProfilo();});
  document.querySelectorAll("[data-day]").forEach(c=>c.onclick=()=>{const g=tog(p.giorni,c.dataset.day);p.giorni=DAYS.map(x=>x[0]).filter(x=>g.includes(x));save();vProfilo();});
+ document.querySelectorAll("[data-famon]").forEach(c=>c.onclick=()=>{F.on=!F.on;save();vProfilo();});
+ document.querySelectorAll("[data-porta]").forEach(c=>c.onclick=()=>{F.porta=+c.dataset.porta;save();vProfilo();});
+ document.querySelectorAll("[data-st]").forEach(b=>b.onclick=()=>{const k=b.dataset.st;F[k]=clamp(F[k]+ +b.dataset.dv,0,12);save();vProfilo();});
  document.querySelectorAll("[data-rest]").forEach(c=>c.onclick=()=>{p.riposo=tog(p.riposo,c.dataset.rest);save();vProfilo();});
- $("#gen").onclick=()=>{if(!p.giorni.length){$("#gen").textContent="Scegli almeno un giorno";return;}newPlan();go("piano");};
+ $("#gen").onclick=()=>{if(!p.giorni.length&&!F.on){$("#gen").textContent="Scegli almeno un giorno";return;}newPlan();go("piano");};
  bindStale(()=>go("piano"));
  bindBackup();
 }
@@ -418,73 +551,113 @@ function restore(txt,msg){
 }
 
 /* ===== PIANO ===== */
+function recipeBox(d,w,get){
+ const p=S.profilo,t=famTotals(d,w,get),R=t.R;
+ return`<details><summary>Ricetta e dosi per ${t.people} person${t.people===1?"a":"e"}${t.extra.length?` + ${t.extra.length} porzion${t.extra.length===1?"e":"i"} per la cabina`:""} · ${R.min} min</summary>
+  ${R.it.map(([id])=>`<div class="food"><span>${esc(FOODS[id].n)}</span><em>${fmtTot(id,t.tot[id])}</em></div>`).join("")}
+  <div class="mm">+ sale, spezie ed erbe a piacere${t.extra.length?` · per la cabina: ${esc(t.extra.join(", "))}`:""}</div>
+  <ol class="steps">${R.st.map(x=>`<li>${esc(x)}</li>`).join("")}</ol>
+  ${p.fam.pi>0?`<div class="kid">👶 Per il piccolo: ${esc(R.kid||"porzione a pezzetti.")} Sale solo dopo aver tolto la sua porzione.</div>`:""}
+  ${t.extra.length?`<div class="kid">🍲 Metti subito le porzioni della cabina in contenitori chiusi, falle raffreddare e mettile in frigo.</div>`:""}</details>`;
+}
 function vPiano(){
  const p=S.profilo;
  if(!S.plan){$("#app").innerHTML=`<div class="empty">Nessun piano ancora.<button class="btn" onclick="go('profilo')">Imposta gli obiettivi</button></div>`;return;}
- const PD=S.plan.days,days=Object.keys(PD),slots=S.plan.slots;
+ const PD=S.plan.days,days=Object.keys(PD),slots=S.plan.slots,fam=S.plan.fam,get=solver();
  if(!days.includes(S.day))S.day=days[0];
- const res={};days.forEach(d=>res[d]=solveDay(PD[d].filter(Boolean),Td(p,d)));
- const okN=days.filter(d=>res[d].pOk&&res[d].kOk).length;
- const T=Td(p,S.day),r=res[S.day],ids=PD[S.day];
- const E=S.eaten[S.day]||{};
- // le voci di r.items hanno mi = indice tra i pasti presenti; rimappo sugli slot
- const present=ids.map((x,i)=>x?i:-1).filter(i=>i>=0);
- const itemsOf=slot=>{const k=present.indexOf(slot);return k<0?[]:r.items.filter(i=>i.mi===k);};
+ const d=S.day,ok=x=>{const r=get(x).r;return r.pOk&&r.kOk;};
+ const okN=days.filter(ok).length,home=planHome(d);
+ const {T,r,ids,rids,slotItems}=get(d);
+ const E=S.eaten[d]||{};
  const pct=(a,b)=>Math.min(100,Math.round(a/b*100));
- const eatenIt=slots.flatMap((s,mi)=>E[mi]?itemsOf(mi):[]),et=sum(eatenIt);
+ const eatenIt=slots.flatMap((s,mi)=>E[mi]?slotItems[mi]:[]),et=sum(eatenIt);
+ const cookExtra=fam&&home?["pra","cen"].flatMap(w=>fam[d][w]?famTotals(d,w,get).extra:[]):[];
  let html=staleBox()+`<div class="card"><div class="meter"><span>Settimana</span><b>${okN}/${days.length} giorni a obiettivo</b></div>
- <div class="daytabs">${days.map(d=>`<span class="chip ${d===S.day?"on":""}" data-d="${d}">${dayLbl(d)}${isRest(p,d)?" 💤":""}<i class="dot" style="background:${res[d].pOk&&res[d].kOk?"var(--ok)":"var(--ko)"}"></i></span>`).join("")}</div></div>
+ <div class="daytabs">${days.map(x=>`<span class="chip ${x===d?"on":""}" data-d="${x}">${dayLbl(x)}${planHome(x)?" 🏠":isRest(p,x)?" 💤":""}<i class="dot" style="background:${ok(x)?"var(--ok)":"var(--ko)"}"></i></span>`).join("")}</div></div>
  <div class="card">
-  ${isRest(p,S.day)?`<div class="mm" style="margin:0 0 8px">💤 Giorno fermo: meno calorie, stesse proteine.</div>`:""}
+  ${home?`<div class="mm" style="margin:0 0 8px">🏠 Giorno a casa: mangi con la famiglia, meno calorie, stesse proteine.</div>`:isRest(p,d)?`<div class="mm" style="margin:0 0 8px">💤 Giorno fermo: meno calorie, stesse proteine.</div>`:""}
   <div class="meter"><span>Calorie</span><span><b>${Math.round(r.tot.k)}</b> / ${T.k} kcal</span></div><div class="bar"><i class="${r.kOk?"ok":""}" style="width:${pct(r.tot.k,T.k)}%"></i></div>
   <div class="meter" style="margin-top:8px"><span>Proteine</span><span><b>${Math.round(r.tot.p)}</b> / ${T.p} g</span></div><div class="bar"><i class="${r.pOk?"ok":""}" style="width:${pct(r.tot.p,T.p)}%"></i></div>
   <div class="meter" style="margin-top:8px"><span>Carboidrati <b>${Math.round(r.tot.c)} g</b></span><span>Grassi <b>${Math.round(r.tot.f)} g</b></span></div>
   ${r.pOk&&r.kOk?`<div class="status ok">✓ Giorno a obiettivo: proteine raggiunte, calorie entro ±5%.</div>`:
    `<div class="status ko">⚠ ${!r.pOk?"Mancano "+Math.round(T.p-r.tot.p)+" g di proteine. ":""}${!r.kOk?"Calorie fuori di "+Math.round(r.tot.k-T.k)+" kcal. ":""}Prova a cambiare un pasto.</div>`}
   ${eatenIt.length?`<div class="status info">Mangiato: <b>${Math.round(et.k)} kcal</b> · ${Math.round(et.p)} g proteine<br>Restano: <b>${Math.max(0,Math.round(r.tot.k-et.k))} kcal</b> · ${Math.max(0,Math.round(r.tot.p-et.p))} g proteine</div>`:""}
+  ${cookExtra.length?`<div class="status warn">🍲 Oggi si cucina anche per la cabina: ${esc(cookExtra.join(", "))}. Le dosi sono già nelle ricette qui sotto.</div>`:""}
  </div><div class="card">`;
  slots.forEach((s,mi)=>{
-  const m=MEALS.find(x=>x.id===ids[mi]);
+  const id=ids[mi],m=meal(rids[mi]),ref=!!id&&id[0]==="@",src=ref?id.slice(1,4):null,w=ref?id.slice(5):null,atHome=ref&&src===d;
   if(!m){html+=`<div class="meal"><div class="mh"><span class="slot">${SLOTS[s]}</span></div><div class="mm">Nessun pasto compatibile con attrezzatura ed esclusioni.</div></div>`;return;}
-  const its=itemsOf(mi),mt=sum(its),on=!!E[mi];
+  const its=slotItems[mi],mt=sum(its),on=!!E[mi];
   const hasF=its.some(i=>FOODS[i.id].fr),hasH=its.some(i=>FOODS[i.id].ht);
-  html+=`<div class="meal ${on?"eaten":""}"><div class="mh"><div><div class="slot">${SLOTS[s]}</div><div class="nm">${esc(m.n)}</div></div>
-  <div class="btns"><button class="mini ${on?"on":""}" data-e="${mi}">${on?"✓ Mangiato":"Mangiato?"}</button><button class="mini" data-sw="${mi}">↻</button></div></div>
+  const swap=atHome?`data-swr="${d}:${w}"`:`data-sw="${mi}"`;
+  html+=`<div class="meal ${on?"eaten":""}"><div class="mh"><div><div class="slot">${SLOTS[s]}${atHome?" · in famiglia 🏠":ref?" · da casa 🍲":""}</div><div class="nm">${esc(m.n)}</div></div>
+  <div class="btns"><button class="mini ${on?"on":""}" data-e="${mi}">${on?"✓ Mangiato":"Mangiato?"}</button><button class="mini" ${swap} title="Cambia piatto">↻</button></div></div>
+  ${atHome?`<div class="mm" style="margin:2px 0 2px">La tua porzione · pesi da crudo</div>`:""}
   ${its.map(i=>`<div class="food"><span>${esc(FOODS[i.id].n)}</span><em>${fmtQty(i.id,i.g)}</em></div>`).join("")}
   <div class="mm">${Math.round(mt.k)} kcal · P ${Math.round(mt.p)} g · C ${Math.round(mt.c)} g · G ${Math.round(mt.f)} g</div>
-  ${hasF||hasH?`<div class="tags">${hasF?"❄ frigo ":""}${hasH?"♨ da scaldare":""}</div>`:""}</div>`;
+  ${ref&&!atHome?`<div class="leftover">Cucinato a casa ${dayLbl(src)} (${w==="pra"?"pranzo":"cena"}) · ❄ in frigo · ${m.porta==="freddo"?"buono anche freddo":"♨ scaldalo nello scaldavivande"} · entro 2 giorni · pesi da crudo: è la porzione messa da parte a casa</div>`:
+   !ref&&(hasF||hasH)?`<div class="tags">${hasF?"❄ frigo ":""}${hasH?"♨ da scaldare":""}</div>`:""}
+  ${atHome?recipeBox(d,w,get):""}</div>`;
  });
- html+=`</div><button class="btn ghost" id="regen">Rigenera la settimana</button>
- <p class="note">↻ cambia il pasto con un altro adatto. Valori nutrizionali medi da tabelle ed etichette tipiche: possono variare di marca in marca. Le quantità di olio, pane e pasta pesale le prime volte, poi vai a occhio.</p>`;
+ html+=`</div>`;
+ if(fam&&!home&&fam[d]){
+  html+=`<div class="card"><h2>🏠 A casa oggi</h2><div class="mm">Cosa mangia la famiglia mentre sei via.</div>`;
+  ["pra","cen"].forEach(w=>{const R=meal(fam[d][w]);if(!R)return;
+   html+=`<div class="famh"><div><div class="slot" style="font-size:12px;color:var(--acc);font-weight:700;text-transform:uppercase;letter-spacing:.7px">${SLOTS[w]}</div><div class="nm" style="font-weight:650">${esc(R.n)}</div></div><button class="mini" data-swr="${d}:${w}" title="Cambia piatto">↻</button></div>${recipeBox(d,w,get)}`;});
+  html+=`</div>`;
+ }
+ html+=`<button class="btn ghost" id="regen">Rigenera la settimana</button>
+ <p class="note">↻ cambia il piatto con un altro adatto. Valori nutrizionali medi da tabelle ed etichette tipiche: possono variare di marca in marca. Le quantità di olio, pane e pasta pesale le prime volte, poi vai a occhio.</p>`;
  $("#app").innerHTML=html;
  bindStale(vPiano);
  document.querySelectorAll("[data-d]").forEach(c=>c.onclick=()=>{S.day=c.dataset.d;save();vPiano();});
- document.querySelectorAll("[data-e]").forEach(b=>b.onclick=()=>{const mi=b.dataset.e,e=S.eaten[S.day]=S.eaten[S.day]||{};if(e[mi])delete e[mi];else e[mi]=true;save();vPiano();});
- document.querySelectorAll("[data-sw]").forEach(b=>b.onclick=()=>{const mi=+b.dataset.sw,s=slots[mi];
+ document.querySelectorAll("[data-e]").forEach(b=>b.onclick=()=>{const mi=b.dataset.e,e=S.eaten[d]=S.eaten[d]||{};if(e[mi])delete e[mi];else e[mi]=true;save();vPiano();});
+ document.querySelectorAll("[data-sw]").forEach(b=>b.onclick=()=>{const mi=+b.dataset.sw,s=slots[mi],pr=home?Object.assign({},p,{frigo:true,caldo:true}):p;
   const rr=rng(Date.now());let nid=null;
-  for(let a=0;a<12;a++){const c=pickMeal(s,p,ids,rr);if(!c||c===ids[mi])continue;nid=c;const t=ids.slice();t[mi]=c;const q=solveDay(t.filter(Boolean),T);if(q.pOk&&q.kOk)break;}
-  if(nid){ids[mi]=nid;if(S.eaten[S.day])delete S.eaten[S.day][mi];save();vPiano();}
+  for(let a=0;a<12;a++){const c=pickMeal(s,pr,rids,rr);if(!c||c===rids[mi])continue;nid=c;const t=rids.slice();t[mi]=c;const q=solveDay(t.filter(Boolean),T);if(q.pOk&&q.kOk)break;}
+  if(nid){ids[mi]=nid;if(S.eaten[d])delete S.eaten[d][mi];save();vPiano();}
   else{b.textContent="nessun altro";b.disabled=true;}});
- $("#regen").onclick=()=>{if(!p.giorni.length){go("profilo");return;}newPlan();vPiano();};
+ document.querySelectorAll("[data-swr]").forEach(b=>b.onclick=()=>{const [x,w]=b.dataset.swr.split(":"),cur=fam[x][w];
+  const cook=Object.keys(PD).some(y=>y!==x&&PD[y].some(v=>v==="@"+x+":"+w));
+  const week=Object.values(fam).flatMap(o=>[o.pra,o.cen]);
+  let pool=REC.filter(R=>R.s.includes(w)&&R.id!==cur&&famOk(R,p)&&(!cook||portable(R,p)));
+  if(!pool.length){b.textContent="nessun altro";b.disabled=true;return;}
+  const fr=pool.filter(R=>!week.includes(R.id));if(fr.length)pool=fr;
+  fam[x][w]=pool[Math.floor(Math.random()*pool.length)].id;save();vPiano();});
+ $("#regen").onclick=()=>{if(!p.giorni.length&&!p.fam.on){go("profilo");return;}newPlan();vPiano();};
 }
 
 /* ===== SPESA ===== */
+// tutte le voci della settimana: {id,g,place:"casa"|"cab",day}
+function weekEntries(){
+ const p=S.profilo,PD=S.plan.days,fam=S.plan.fam,get=solver(),out=[];
+ Object.keys(PD).forEach(d=>{const ds=get(d),h=planHome(d);
+  ds.slotItems.forEach((its,mi)=>{const id=ds.ids[mi],ref=!!id&&id[0]==="@",place=ref||h?"casa":"cab",day=ref?id.slice(1,4):d;
+   its.forEach(i=>out.push({id:i.id,g:i.g,place,day}));});
+  if(fam&&fam[d]){const co=famCoef(p);["pra","cen"].forEach(w=>{const R=meal(fam[d][w]);if(R)R.it.forEach(([id,g])=>out.push({id,g:g*co,place:"casa",day:d}));});}
+ });
+ return out;
+}
 function spesaLists(){
- const p=S.profilo,PD=S.plan.days,days=Object.keys(PD);
- if(S.split&&days.length>=4){
-  const h=Math.ceil(days.length/2),a=days.slice(0,h),b=days.slice(h);
-  const rng2=ds=>dayLbl(ds[0])+(ds.length>1?"–"+dayLbl(ds[ds.length-1]):"");
-  return[{k:"1",t:"Spesa 1 · per "+rng2(days),sub:"Dispensa per tutta la settimana + fresco per "+rng2(a),items:shopping(PD,days,p,(d,id)=>!isFresh(id)||a.includes(d))},
-   {k:"2",t:"Spesa 2 · prima di "+dayLbl(b[0]),sub:"Solo fresco per "+rng2(b),items:shopping(PD,b,p,(d,id)=>isFresh(id))}];
- }
- return[{k:"a",t:"Spesa per "+days.length+(days.length===1?" giorno":" giorni"),sub:"",items:shopping(PD,days,p,()=>true)}];
+ const all=weekEntries(),fam=!!S.plan.fam,order=DAYS.map(x=>x[0]),lists=[];
+ const span=ds=>dayLbl(ds[0])+(ds.length>1?"–"+dayLbl(ds[ds.length-1]):"");
+ const groups=fam?[["casa","🏠 Spesa di casa"],["cab","🚚 Spesa per la cabina"]]:[["cab",""]];
+ groups.forEach(([pl,title])=>{const E=all.filter(e=>e.place===pl);if(!E.length)return;
+  const ds=order.filter(d=>E.some(e=>e.day===d));
+  const name=title||"Spesa per "+ds.length+(ds.length===1?" giorno":" giorni");
+  if(S.split&&ds.length>=4){const h=Math.ceil(ds.length/2),a=ds.slice(0,h),b=ds.slice(h);
+   lists.push({k:pl+"1",t:name+" · 1",sub:"Dispensa per "+span(ds)+" + fresco per "+span(a),items:shopping(E.filter(e=>!isFresh(e.id)||a.includes(e.day)))});
+   lists.push({k:pl+"2",t:name+" · 2 (prima di "+dayLbl(b[0])+")",sub:"Solo fresco per "+span(b),items:shopping(E.filter(e=>isFresh(e.id)&&b.includes(e.day)))});
+  }else lists.push({k:pl,t:name,sub:fam?"Per "+span(ds):"",items:shopping(E)});
+ });
+ return lists;
 }
 function vSpesa(){
  if(!S.plan){$("#app").innerHTML=`<div class="empty">Genera prima il piano.<button class="btn" onclick="go('profilo')">Vai agli obiettivi</button></div>`;return;}
- const nDays=Object.keys(S.plan.days).length,lists=spesaLists();
+ const lists=spesaLists(),canSplit=Object.keys(S.plan.days).length>=4;
  const grand=lists.reduce((a,l)=>a+l.items.reduce((b,x)=>b+x.cost,0),0),mine=Object.keys(S.prezzi).length;
  let html=staleBox();
- if(nDays>=4)html+=`<div class="card"><div class="chips"><span class="chip ${!S.split?"on":""}" data-sp="0">Una spesa</span><span class="chip ${S.split?"on":""}" data-sp="1">Due spese (fresco a metà settimana)</span></div></div>`;
+ if(canSplit)html+=`<div class="card"><div class="chips"><span class="chip ${!S.split?"on":""}" data-sp="0">Una spesa</span><span class="chip ${S.split?"on":""}" data-sp="1">Due spese (fresco a metà settimana)</span></div></div>`;
  lists.forEach(L=>{let rep="",sub=0;
   html+=`<div class="card"><h2>${esc(L.t)}</h2>${L.sub?`<div class="mm" style="margin-top:-4px">${esc(L.sub)}</div>`:""}`;
   L.items.forEach(x=>{if(x.rep!==rep){rep=x.rep;html+=`<h3>${rep}</h3>`;}
