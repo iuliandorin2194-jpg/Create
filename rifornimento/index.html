@@ -7,6 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Rifornimento">
+<meta name="app-version" content="1.5 · 14/11/2026">
 <title>Rifornimento – pasti a macro per chi viaggia</title>
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -116,7 +117,7 @@ summary{cursor:pointer;color:var(--acc);font-size:13px;padding:7px 0;font-weight
 <body>
 <header>
 <svg viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="14" fill="#f5a524"/><path d="M32 10c-7 10-14 18-14 27a14 14 0 0 0 28 0c0-9-7-17-14-27z" fill="#14171a"/><path d="M28 30v9m4-9v9m4-9v9m-8 0a4 4 0 0 0 8 0m-4 4v8" stroke="#f5a524" stroke-width="2.5" stroke-linecap="round" fill="none"/></svg>
-<h1>Rifornimento<small>Pasti a macro per chi viaggia</small></h1>
+<h1>Rifornimento<small>Pasti a macro per chi viaggia · <span id="ver"></span></small></h1>
 <div class="mode" role="group" aria-label="Oggi sei"><button data-mode="casa">🏠 Casa</button><button data-mode="lavoro">🚚 Lavoro</button></div>
 </header>
 <main id="app"></main>
@@ -593,7 +594,7 @@ function fmtTot(id,g){const f=FOODS[id];if(f.u){const n=Math.max(1,Math.round(g/
 const KEY="rifornimento_v1";
 const DEF={profilo:{sesso:"m",eta:32,peso:80,altezza:178,att:1.3,attR:1.2,obi:"man",pasti:4,frigo:true,caldo:false,escludi:[],giorni:["mar","mer","gio","ven","sab"],riposo:[],kcalMan:0,protMan:0,
   fam:{on:true,ad:3,ra:1,pi:1,porta:2}},
- plan:null,day:null,check:{},eaten:{},split:false,prezzi:{},corr:0,view:"profilo",myFoods:{},myRec:[],frigo:[],extra:[]};
+ plan:null,day:null,check:{},eaten:{},split:false,prezzi:{},corr:0,view:"profilo",myFoods:{},myRec:[],frigo:[],extra:[],recentEx:[]};
 const sig=p=>JSON.stringify([+p.pasti,!!p.frigo,!!p.caldo,p.escludi.slice().sort(),p.giorni,!!p.fam.on,p.fam.on?+p.fam.porta:0]);
 function normalize(x){
  x=Object.assign(JSON.parse(JSON.stringify(DEF)),x||{});
@@ -603,7 +604,7 @@ function normalize(x){
  if(x.plan&&!x.plan.days)x.plan={days:x.plan,slots:slotsFor(x.profilo),sig:"old",fam:null,home:[]};
  if(x.plan){x.plan.fam=x.plan.fam||null;x.plan.home=x.plan.home||[];}
  ["check","eaten","prezzi","myFoods"].forEach(k=>{if(!x[k]||typeof x[k]!=="object"||Array.isArray(x[k]))x[k]={};});
- ["myRec","frigo","extra"].forEach(k=>{if(!Array.isArray(x[k]))x[k]=[];});
+ ["myRec","frigo","extra","recentEx"].forEach(k=>{if(!Array.isArray(x[k]))x[k]=[];});
  return x;
 }
 let S;
@@ -1097,9 +1098,18 @@ function vSpesa(){
  if(!S.plan){$("#app").innerHTML=`<div class="empty">Genera prima il piano.<button class="btn" onclick="go('profilo')">Vai agli obiettivi</button></div>`;return;}
  const lists=spesaLists(),canSplit=Object.keys(S.plan.days).length>=4;
  const grand=lists.reduce((a,l)=>a+l.items.reduce((b,x)=>b+x.cost,0),0),mine=Object.keys(S.prezzi).length;
- let html=staleBox()+`<div class="card"><h2>✍️ Aggiunte a mano</h2>
-  <div class="row" style="grid-template-columns:1fr auto"><input id="ex-n" placeholder="Es. detersivo, caffè, pannolini…" enterkeyhint="done"><button class="btn sm" id="ex-add" style="margin:0;padding:10px 16px">Aggiungi</button></div>
-  ${S.extra.map((x,i)=>`<div class="li ${x.ok?"done":""}"><input type="checkbox" id="ex-${i}" data-exc="${i}" ${x.ok?"checked":""}><label for="ex-${i}">${esc(x.n)}${x.q?`<small>${esc(x.q)}</small>`:""}</label><button class="mini" data-exd="${i}" aria-label="Togli">✕</button></div>`).join("")}
+ const exCost=x=>x.p>0?x.p*(x.qty||1):0,exTot=S.extra.reduce((a,x)=>a+exCost(x),0);
+ const recent=S.recentEx.filter(r=>!S.extra.some(x=>!x.ok&&norm(x.n)===norm(r.n))).slice(0,12);
+ let html=staleBox()+`<div class="card"><h2>✍️ Aggiungi altri prodotti</h2>
+  <div class="mm" style="margin-top:-4px">Qualsiasi cosa: cibo, bevande, casa, bambini…</div>
+  <label>Prodotto</label><input id="ex-n" placeholder="Es. caffè, detersivo, pannolini, birra…" autocomplete="off" enterkeyhint="next">
+  <div class="res" id="ex-sug"></div>
+  <div class="row"><div><label>Quantità</label><input id="ex-q" type="text" inputmode="decimal" value="1"></div>
+  <div><label id="ex-pl">Prezzo € (se vuoi)</label><input id="ex-p" type="text" inputmode="decimal" placeholder="—"></div></div>
+  <button class="btn sm" id="ex-add">➕ Aggiungi alla lista</button>
+  ${recent.length?`<label>Aggiunti di recente: tocca per rimetterli</label><div class="chips">${recent.map((r,i)=>`<span class="chip" data-rec="${i}">${esc(r.n)}${r.p?` · ${eur(r.p)}`:""}</span>`).join("")}</div>`:""}
+  ${S.extra.length?`<h3>Nella lista</h3>`+S.extra.map((x,i)=>`<div class="li ${x.ok?"done":""}"><input type="checkbox" id="ex-${i}" data-exc="${i}" ${x.ok?"checked":""}><label for="ex-${i}">${esc(x.n)}<small>${x.q?esc(x.q):(x.qty||1)+(x.p?" × "+eur(x.p):"")}</small></label><button class="pr ${x.p?"mine":""}" data-exp="${i}" title="Tocca per il prezzo">${x.p?eur(exCost(x)):"€ ?"}</button><button class="mini" data-exd="${i}" aria-label="Togli">✕</button></div>`).join("")+
+   `<div class="tot"><span class="mm">Stima aggiunte</span><b>≈ ${eur(exTot)}</b></div>`:""}
  </div>`;
  if(canSplit)html+=`<div class="card"><div class="chips"><span class="chip ${!S.split?"on":""}" data-sp="0">Una spesa</span><span class="chip ${S.split?"on":""}" data-sp="1">Due spese (fresco a metà settimana)</span></div></div>`;
  lists.forEach(L=>{let rep="",sub=0;
@@ -1108,7 +1118,7 @@ function vSpesa(){
    const ck=L.k+":"+x.id,on=!!S.check[ck],m=!!S.prezzi[x.id];sub+=x.cost;
    html+=`<div class="li ${on?"done":""}"><input type="checkbox" id="c-${ck}" data-c="${ck}" ${on?"checked":""}><label for="c-${ck}">${esc(x.n)}<small>${esc(x.q)}</small></label><button class="pr ${m?"mine":""}" data-p="${x.id}" title="Prezzo ${esc(unitLbl(x.id))}: tocca per cambiarlo">${eur(x.cost)}</button></div>`;});
   html+=`<div class="tot"><span class="mm">Stima ${lists.length>1?"di questa spesa":"totale"}</span><b>≈ ${eur(sub)}</b></div></div>`;});
- if(lists.length>1)html+=`<div class="card"><div class="tot" style="border:0;margin:0;padding:0"><span class="mm">Totale settimana</span><b>≈ ${eur(grand)}</b></div></div>`;
+ if(lists.length>1||exTot>0)html+=`<div class="card"><div class="tot" style="border:0;margin:0;padding:0"><span class="mm">Totale spesa${exTot>0?" (con le aggiunte)":""}</span><b>≈ ${eur(grand+exTot)}</b></div></div>`;
  html+=`<button class="btn" id="share">Condividi lista (WhatsApp…)</button><textarea id="sharetxt" readonly hidden></textarea><button class="btn ghost" id="clr">Azzera spunte</button>
  <div class="card"><h2>Come funzionano i prezzi</h2>
   <div class="mm">I prezzi di partenza sono <b>medie indicative</b> da supermercato, scritte nell'app: non vengono da internet e non si aggiornano da soli. Per avere una stima giusta:</div>
@@ -1121,8 +1131,30 @@ function vSpesa(){
  <p class="note">Le confezioni sono indicative. Fresco (yogurt, affettati, insalata) per più di 3–4 giorni: meglio fare due spese o usare la borsa frigo ben carica.</p>`;
  $("#app").innerHTML=html;
  bindStale(vSpesa);
- const exAdd=()=>{const v=$("#ex-n").value.trim();if(!v)return;S.extra.push({n:v});save();vSpesa();setTimeout(()=>{const i=$("#ex-n");if(i)i.focus();},0);};
- $("#ex-add").onclick=exAdd;$("#ex-n").onkeydown=e=>{if(e.key==="Enter")exAdd();};
+ // un prodotto dell'elenco ingredienti propone il suo prezzo
+ const foodByName=n=>Object.keys(FOODS).find(id=>norm(FOODS[id].n)===norm(n));
+ const exHint=()=>{const n=$("#ex-n").value.trim(),id=foodByName(n),r=S.recentEx.find(x=>norm(x.n)===norm(n));
+  const sug=r&&r.p?r.p:id?priceOf(id):null;$("#ex-p").placeholder=sug?sug.toFixed(2).replace(".",","):"—";
+  $("#ex-pl").textContent=id?"Prezzo "+unitLbl(id).replace(/^a /,"a ").replace(/^al /,"al ")+" (€)":"Prezzo € (se vuoi)";
+  const q=norm(n),words=q.split(/\s+/).filter(Boolean);
+  const pool=[...new Set(S.recentEx.map(x=>x.n).concat(Object.keys(FOODS).map(k=>FOODS[k].n)))];
+  const hits=words.length?pool.filter(x=>{const t=norm(x);return words.every(w=>t.includes(w))&&t!==q;}).slice(0,8):[];
+  const out=$("#ex-sug");out.innerHTML=hits.map(h=>`<button data-sug="${esc(h)}">${esc(h)}</button>`).join("");
+  out.querySelectorAll("[data-sug]").forEach(bt=>bt.onclick=()=>{$("#ex-n").value=bt.dataset.sug;exHint();$("#ex-q").focus();});};
+ const addEx=(n,qty,pr)=>{const id=foodByName(n),r=S.recentEx.find(x=>norm(x.n)===norm(n));
+  const pv=pr>0?pr:(r&&r.p)||(id?priceOf(id):0);
+  const same=S.extra.find(x=>!x.ok&&!x.q&&norm(x.n)===norm(n));
+  if(same){same.qty=(same.qty||1)+qty;if(pv)same.p=pv;}else S.extra.push({n,qty,p:pv||0,unit:id?unitLbl(id):""});
+  S.recentEx=[{n,p:pv||0}].concat(S.recentEx.filter(x=>norm(x.n)!==norm(n))).slice(0,20);save();vSpesa();};
+ const exAdd=()=>{const n=$("#ex-n").value.trim();if(!n)return;const num=v=>parseFloat(String(v).replace(",","."));
+  addEx(n,num($("#ex-q").value)>0?num($("#ex-q").value):1,num($("#ex-p").value));setTimeout(()=>{const i=$("#ex-n");if(i)i.focus();},0);};
+ $("#ex-add").onclick=exAdd;$("#ex-n").oninput=exHint;$("#ex-n").onkeydown=e=>{if(e.key==="Enter")$("#ex-q").focus();};
+ $("#ex-p").onkeydown=$("#ex-q").onkeydown=e=>{if(e.key==="Enter")exAdd();};
+ document.querySelectorAll("[data-rec]").forEach(c=>c.onclick=()=>{const r=recent[+c.dataset.rec];addEx(r.n,1,r.p);});
+ document.querySelectorAll("[data-exp]").forEach(bt=>bt.onclick=()=>{const x=S.extra[+bt.dataset.exp];
+  const v=prompt(`Prezzo di ${x.n}${x.unit?" ("+x.unit+")":" (a pezzo)"}, in euro:`,x.p?x.p.toFixed(2).replace(".",","):"");if(v===null)return;
+  const n=parseFloat(v.trim().replace(",","."));x.p=n>0?Math.round(n*100)/100:0;
+  const r=S.recentEx.find(y=>norm(y.n)===norm(x.n));if(r)r.p=x.p;else S.recentEx.unshift({n:x.n,p:x.p});save();vSpesa();});
  document.querySelectorAll("[data-exc]").forEach(c=>c.onchange=()=>{S.extra[+c.dataset.exc].ok=c.checked;save();vSpesa();});
  document.querySelectorAll("[data-exd]").forEach(b=>b.onclick=()=>{S.extra.splice(+b.dataset.exd,1);save();vSpesa();});
  document.querySelectorAll("[data-sp]").forEach(c=>c.onclick=()=>{S.split=c.dataset.sp==="1";save();vSpesa();});
@@ -1136,7 +1168,7 @@ function vSpesa(){
  $("#rstp").onclick=()=>{if(confirm("Tornare ai prezzi base per tutti gli alimenti?")){S.prezzi={};save();vSpesa();}};
  $("#clr").onclick=()=>{S.check={};save();vSpesa();};
  $("#share").onclick=async()=>{let t="🛒 Spesa Rifornimento\n";
-  const ex=S.extra.filter(x=>!x.ok);if(ex.length){t+="\n*Aggiunte*\n";ex.forEach(x=>{t+="• "+x.n+(x.q?": "+x.q:"")+"\n";});}
+  const ex=S.extra.filter(x=>!x.ok);if(ex.length){t+="\n*Aggiunte*\n";ex.forEach(x=>{t+="• "+x.n+": "+(x.q||(x.qty||1))+"\n";});}
   lists.forEach(L=>{const left=L.items.filter(x=>!S.check[L.k+":"+x.id]);if(!left.length)return;
    if(lists.length>1)t+="\n— "+L.t+" —\n";let r="";
    left.forEach(x=>{if(x.rep!==r){r=x.rep;t+="\n*"+r+"*\n";}t+="• "+x.n+": "+x.q+"\n";});
@@ -1147,6 +1179,7 @@ function vSpesa(){
   catch(e){const ta=$("#sharetxt");ta.hidden=false;ta.value=t;ta.select();b.textContent="Copia il testo qui sotto";}};
 }
 
+$("#ver").textContent="v"+document.querySelector('meta[name="app-version"]').content.split(" ·")[0];
 render();
 if("serviceWorker" in navigator&&location.protocol==="https:"&&!/claude|anthropic/.test(location.hostname)){try{navigator.serviceWorker.register("sw.js").catch(()=>{});}catch(e){}}
 </script>

@@ -22,7 +22,8 @@
   .top { display:flex; align-items:center; gap:14px; margin-bottom:24px; }
   .top img { width:56px; height:56px; border-radius:14px; flex:none; }
   .top p.sub { margin:0; }
-  a.app { display:flex; align-items:center; gap:14px; padding:16px; background:var(--card); border-radius:14px; color:var(--text); text-decoration:none; }
+  a.app { position:relative; padding-right:64px !important; display:flex; align-items:center; gap:14px; padding:16px; background:var(--card); border-radius:14px; color:var(--text); text-decoration:none; }
+  a.app .v { position:absolute; top:10px; right:12px; font-size:11px; color:var(--muted); border:1px solid #24406e; border-radius:999px; padding:1px 7px; }
   a.app img { width:48px; height:48px; border-radius:12px; flex:none; }
   a.app strong { display:block; font-size:17px; }
   a.app span { color:var(--muted); font-size:14px; }
@@ -34,11 +35,17 @@
   <div class="top"><img src="icon-192.png" alt=""><div><h1>Create</h1><p class="sub">Laboratorio di app</p></div></div>
   <ul id="apps">
     <!-- Ogni nuova app viene aggiunta qui -->
-    <li><a class="app" href="impegni/"><img src="impegni/icon-192.png" alt=""><div><strong>Impegni</strong><span>Impegni giornalieri da camionista, riposi e conteggio mensile</span></div></a></li>
-    <li><a class="app" href="rifornimento/"><img src="rifornimento/icon-192.png" alt=""><div><strong>Rifornimento</strong><span>Pasti a macro in cabina e in famiglia, ricette e lista della spesa</span></div></a></li>
+    <li><a class="app" href="impegni/"><img src="impegni/icon-192.png" alt=""><div><strong>Impegni</strong><span>Impegni giornalieri da camionista, riposi e conteggio mensile</span></div><small class="v" data-ver="impegni/"></small></a></li>
+    <li><a class="app" href="rifornimento/"><img src="rifornimento/icon-192.png" alt=""><div><strong>Rifornimento</strong><span>Pasti a macro in cabina e in famiglia, ricette e lista della spesa</span></div><small class="v" data-ver="rifornimento/"></small></a></li>
   </ul>
 </main>
 <script>
+// la versione la legge direttamente da ogni app, così è sempre quella pubblicata
+document.querySelectorAll('[data-ver]').forEach(el => {
+  fetch(el.dataset.ver + 'index.html', { cache: 'no-store' }).then(r => r.text()).then(t => {
+    const m = t.match(/name="app-version" content="([^"·]+)/); if (m) el.textContent = 'v' + m[1].trim();
+  }).catch(() => {});
+});
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
 </script>
 </body>
