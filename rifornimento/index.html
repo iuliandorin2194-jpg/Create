@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Rifornimento">
-<meta name="app-version" content="1.12 · 14/11/2026">
+<meta name="app-version" content="1.13 · 14/11/2026">
 <title>Rifornimento – pasti a macro per chi viaggia</title>
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -613,15 +613,25 @@ const famCoef=pr=>pr.fam.ad+pr.fam.ra*.75+pr.fam.pi*.4;
 const famN=pr=>pr.fam.ad+pr.fam.ra+pr.fam.pi;
 // "@dom:cen" = il piatto di casa di domenica a cena
 function resolveIds(ids,fam){return ids.map(x=>x&&x[0]==="@"?(fam&&fam[x.slice(1,4)]?fam[x.slice(1,4)][x.slice(5)]||null:null):x);}
+// pasti mangiati a casa nel giorno di partenza (primo giorno in cabina) e di rientro (ultimo)
+function homeSlotsFor(pr,d,cab){
+ if(!cab.includes(d)||cab.length>=7)return[];
+ const i=DAYS.findIndex(x=>x[0]===d),prev=DAYS[(i+6)%7][0],next=DAYS[(i+1)%7][0],out=new Set();
+ if(!cab.includes(prev)){if(pr.part==="pomeriggio")["col","pra"].forEach(x=>out.add(x));if(pr.part==="sera")["col","pra","spu"].forEach(x=>out.add(x));}
+ if(!cab.includes(next)){if(pr.rient==="mattina")["pra","spu","cen"].forEach(x=>out.add(x));if(pr.rient==="pomeriggio")["cen"].forEach(x=>out.add(x));}
+ return slotsFor(pr).filter(x=>out.has(x));
+}
 function generatePlan(pr,seed,keepFam){
  const r=rng(seed),plan={},recent={},slots=slotsFor(pr),F=!!(pr.fam&&pr.fam.on),cab=pr.giorni;
  const days=F?DAYS.map(x=>x[0]):cab.slice(),home=d=>F&&!cab.includes(d);
+ const hs={};cab.forEach(d=>{const h=homeSlotsFor(pr,d,cab);if(h.length)hs[d]=h;});
  let fam=null;const refs={},cook={};
  if(F){
-  // il giorno prima di ogni partenza si cucina in più per i primi pasti in cabina
+  // il giorno prima di ogni partenza si cucina in più: le porzioni vanno nei primi pranzi e cene in cabina (entro 2 giorni)
   if(pr.fam.porta>0&&pr.frigo&&cab.length<7)cab.forEach(d=>{const i=DAYS.findIndex(x=>x[0]===d),prev=DAYS[(i+6)%7][0];
-   if(cab.includes(prev))return;cook[prev]=1;const ref={pra:"@"+prev+":cen",cen:"@"+prev+":pra"};refs[d]=ref;
-   if(pr.fam.porta>=4){const nx=DAYS[(i+1)%7][0];if(cab.includes(nx))refs[nx]=ref;}});
+   if(cab.includes(prev))return;const nx=DAYS[(i+1)%7][0],q=[];
+   [d].concat(cab.includes(nx)?[nx]:[]).forEach(t=>["pra","cen"].forEach(w=>{if(slots.includes(w)&&!(hs[t]||[]).includes(w))q.push([t,w]);}));
+   q.slice(0,pr.fam.porta).forEach(([t,w],k)=>{cook[prev]=1;(refs[t]=refs[t]||{})[w]="@"+prev+":"+(k%2===0?"cen":"pra");});});
   fam={};const used=[];
   days.forEach(d=>{fam[d]={};["pra","cen"].forEach(w=>{
    const ex=keepFam&&keepFam[d]&&keepFam[d][w];
@@ -631,12 +641,14 @@ function generatePlan(pr,seed,keepFam){
    fam[d][w]=c?c.id:null;if(c)used.push(c.id);});});
  }
  days.forEach(d=>{
-  const h=home(d),T=Td(pr,d,h),hp=h?Object.assign({},pr,{frigo:true,caldo:true}):pr;
-  const fixed=h?{pra:"@"+d+":pra",cen:"@"+d+":cen"}:(refs[d]||{});
+  const h=home(d),T=Td(pr,d,h),homeP=Object.assign({},pr,{frigo:true,caldo:true}),hsd=hs[d]||[];
+  const fixed=h?{pra:"@"+d+":pra",cen:"@"+d+":cen"}:Object.assign({},refs[d]||{});
+  // nei pasti a casa del giorno di partenza/rientro si mangia con la famiglia
+  if(!h&&F)hsd.forEach(w=>{if(w==="pra"||w==="cen")fixed[w]="@"+d+":"+w;});
   let best=null;
   for(let a=0;a<25;a++){
    const used=[];
-   const ids=slots.map(s=>{if(fixed[s])return fixed[s];const av=(a<15?(recent[s]||[]):[]).concat(used);const id=pickMeal(s,hp,av,r);if(id)used.push(id);return id;});
+   const ids=slots.map(s=>{if(fixed[s])return fixed[s];const av=(a<15?(recent[s]||[]):[]).concat(used);const id=pickMeal(s,(h||hsd.includes(s))?homeP:pr,av,r);if(id)used.push(id);return id;});
    const rids=resolveIds(ids,fam),res=solveDay(rids.filter(Boolean),T),sc=(rids.some(x=>!x)?5000:0)+(res.pOk?0:1000)+Math.abs(res.tot.k-T.k);
    if(!best||sc<best.sc)best={ids,sc};
    if(res.pOk&&res.kOk&&!rids.some(x=>!x))break;
@@ -644,7 +656,7 @@ function generatePlan(pr,seed,keepFam){
   plan[d]=best.ids;
   slots.forEach((s,i)=>{if(!fixed[s])recent[s]=((recent[s]||[]).concat(best.ids[i])).slice(-2);});
  });
- return{days:plan,fam,home:days.filter(home)};
+ return{days:plan,fam,home:days.filter(home),hs};
 }
 function fmtQty(id,g){const f=FOODS[id];if(f.u){const n=Math.round(g/f.u);return n+" "+(n===1?f.ul[0]:f.ul[1])+(f.ul[0]==="scatoletta"?" ("+g+" g)":"");}return g+(f.ml?" ml":" g");}
 const isFresh=id=>!!FOODS[id].fr||FOODS[id].rep==="Frutta e verdura";
@@ -683,14 +695,16 @@ const tavola=()=>{const p=S.profilo;return S.tavola>0?S.tavola:(p.fam.on?1+p.fam
 
 /* ===== STATO ===== */
 const KEY="rifornimento_v1";
-const DEF={profilo:{sesso:"m",eta:32,peso:80,altezza:178,att:1.3,attR:1.2,obi:"man",pasti:4,frigo:true,caldo:false,escludi:[],giorni:["mar","mer","gio","ven","sab"],riposo:[],kcalMan:0,protMan:0,
-  fam:{on:true,ad:3,ra:1,pi:1,porta:2}},
+const DEF={profilo:{sesso:"m",eta:32,peso:80,altezza:178,att:1.3,attR:1.2,obi:"man",pasti:4,frigo:true,caldo:false,escludi:[],giorni:["lun","mar","mer","gio","ven"],riposo:[],kcalMan:0,protMan:0,part:"mattina",rient:"sera",
+  fam:{on:false,ad:1,ra:0,pi:0,porta:2}},
  plan:null,day:null,check:{},eaten:{},split:false,prezzi:{},corr:0,view:"profilo",myFoods:{},myRec:[],frigo:[],extra:[],recentEx:[],tavola:0};
-const sig=p=>JSON.stringify([+p.pasti,!!p.frigo,!!p.caldo,p.escludi.slice().sort(),p.giorni,!!p.fam.on,p.fam.on?+p.fam.porta:0]);
+const sig=p=>JSON.stringify([+p.pasti,!!p.frigo,!!p.caldo,p.escludi.slice().sort(),p.giorni,!!p.fam.on,p.fam.on?+p.fam.porta:0].concat(p.part!=="mattina"||p.rient!=="sera"?[p.part,p.rient]:[]));
 function normalize(x){
- x=Object.assign(JSON.parse(JSON.stringify(DEF)),x||{});
+ const raw=x||{},rawFamMissing=!!raw.profilo&&!raw.profilo.fam;
+ x=Object.assign(JSON.parse(JSON.stringify(DEF)),raw);
  x.profilo=Object.assign({},DEF.profilo,x.profilo);
- x.profilo.fam=Object.assign({},DEF.profilo.fam,x.profilo.fam);
+ // dati salvati prima che esistessero i pasti di casa: si tiene la famiglia predefinita di allora
+ x.profilo.fam=Object.assign({},DEF.profilo.fam,rawFamMissing?{on:true,ad:3,ra:1,pi:1}:{},raw.profilo&&raw.profilo.fam);
  // piano della versione precedente: {giorno:[pasti]}
  if(x.plan&&!x.plan.days)x.plan={days:x.plan,slots:slotsFor(x.profilo),sig:"old",fam:null,home:[]};
  if(x.plan){x.plan.fam=x.plan.fam||null;x.plan.home=x.plan.home||[];}
@@ -698,8 +712,9 @@ function normalize(x){
  ["myRec","frigo","extra","recentEx"].forEach(k=>{if(!Array.isArray(x[k]))x[k]=[];});
  return x;
 }
-let S;
+let S,FIRST=false;
 try{S=JSON.parse(localStorage.getItem(KEY));}catch(e){S=null;}
+FIRST=!S; // primo avvio su questo telefono: mostro il benvenuto
 S=normalize(S);pruneAiFoods();syncMine();fixRoles();
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
 const $=s=>document.querySelector(s);
@@ -722,6 +737,7 @@ function setMode(m){
 }
 function renderMode(){const w=S.profilo.giorni.includes(todayCode());
  document.querySelectorAll("[data-mode]").forEach(b=>{b.classList.toggle("on",(b.dataset.mode==="lavoro")===w);b.onclick=()=>{if((b.dataset.mode==="lavoro")!==w)setMode(b.dataset.mode);else go("piano");};});}
+const hsOf=d=>(S.plan&&S.plan.hs&&S.plan.hs[d])||[];
 const planHome=d=>!!(S.plan&&S.plan.home&&S.plan.home.includes(d));
 const TdP=d=>Td(S.profilo,d,planHome(d));
 // pasti del giorno con le grammature calcolate, divise per slot
@@ -767,7 +783,10 @@ function vProfilo(){
  const ch=(name,val,lab,on)=>`<span class="chip ${on?"on":""}" data-${name}="${val}">${lab}</span>`;
  const F=p.fam,restIn=p.giorni.filter(d=>p.riposo.includes(d)),homeN=F.on?7-p.giorni.length:0;
  const stp=(k,l,v)=>`<div class="stepper"><span>${l}</span><span><button data-st="${k}" data-dv="-1" aria-label="meno">−</button><b>${v}</b><button data-st="${k}" data-dv="1" aria-label="più">+</button></span></div>`;
- $("#app").innerHTML=`
+ $("#app").innerHTML=`${FIRST&&!S.plan?`<div class="card" style="border:1px solid var(--acc)"><h2>👋 Benvenuto in Rifornimento</h2>
+  <div class="mm">Imposta l'app su di te in un minuto:</div>
+  <ol class="steps"><li><b>Chi sei</b>: età, peso, lavoro e obiettivo.</li><li><b>In cabina</b>: in che giorni sei in viaggio, a che ora parti e torni, frigo e fornelletto.</li><li><b>Pasti a casa</b>: attivali per avere ricette di casa e avanzi da portare in cabina (anche se vivi da solo).</li><li>Tocca <b>Genera il piano</b>.</li></ol>
+  <div class="mm">Hai già usato l'app su un altro telefono? Carica il tuo backup in fondo alla pagina.</div></div>`:""}
  <div class="card"><h2>Chi sei</h2>
   <div class="row"><div><label>Sesso</label><select id="sesso"><option value="m">Uomo</option><option value="f">Donna</option></select></div>
   <div><label>Età</label><input id="eta" type="number" inputmode="numeric" value="${p.eta}"></div></div>
@@ -791,11 +810,14 @@ function vProfilo(){
   <label>Attrezzatura</label><div class="chips">${ch("eq","frigo","❄ Frigo / borsa frigo",p.frigo)}${ch("eq","caldo","♨ Scaldavivande / fornelletto",p.caldo)}</div>
   <label>Escludi</label><div class="chips">${ESCL.map(t=>ch("esc",t,t==="carne"?"Carne (tutta)":t[0].toUpperCase()+t.slice(1),p.escludi.includes(t))).join("")}</div>
   <label>${F.on?"Giorni in cabina (gli altri sei a casa)":"Giorni da pianificare"}</label><div class="chips">${DAYS.map(([d,l])=>ch("day",d,l,p.giorni.includes(d))).join("")}</div>
+  ${p.giorni.length&&p.giorni.length<7?`<label>Il primo giorno in cabina parti…</label><div class="chips">${[["mattina","🌅 Mattina"],["pomeriggio","☀️ Pomeriggio"],["sera","🌙 Sera"]].map(([v,l])=>ch("part",v,l,p.part===v)).join("")}</div>
+  <label>L'ultimo giorno in cabina torni a casa…</label><div class="chips">${[["mattina","🌅 Mattina"],["pomeriggio","☀️ Pomeriggio"],["sera","🌙 Sera / notte"]].map(([v,l])=>ch("rient",v,l,p.rient===v)).join("")}</div>
+  <div class="mm">${p.part==="mattina"?"Partenza: tutti i pasti in cabina.":p.part==="pomeriggio"?"Partenza: colazione e pranzo a casa, cena in cabina.":"Partenza: colazione, pranzo e spuntino a casa, cena in cabina."} ${p.rient==="sera"?"Rientro: tutti i pasti in cabina.":p.rient==="pomeriggio"?"Rientro: cena a casa.":"Rientro: pranzo, spuntino e cena a casa."}</div>`:""}
   ${p.giorni.length?`<label>Di questi, quali sono giorni fermi${F.on?" fuori casa":""}? 💤</label><div class="chips">${p.giorni.map(d=>ch("rest",d,dayLbl(d),p.riposo.includes(d))).join("")}</div>`:""}
  </div>
- <div class="card"><h2>Famiglia 🏠</h2>
+ <div class="card"><h2>🏠 Pasti a casa</h2>
   <div class="chips">${ch("famon",1,"Pianifica anche i pasti di casa",F.on)}</div>
-  ${F.on?`<div class="mm">Pranzo e cena di casa per tutta la settimana, con ricette e dosi per tutti. Le tue porzioni sono calcolate sui tuoi obiettivi.</div>
+  ${F.on?`<div class="mm">Pranzo e cena di casa per tutta la settimana, con ricette e dosi per tutti (anche se cucini solo per te: lascia 0 adulti in più). Le tue porzioni sono calcolate sui tuoi obiettivi.</div>
   ${stp("ad","Adulti oltre a te",F.ad)}${stp("ra","Ragazzi 6–13 anni",F.ra)}${stp("pi","Bambini 1–5 anni",F.pi)}
   <label>Porzioni di casa da portare in cabina</label>
   <div class="chips">${ch("porta",0,"Nessuna",F.porta==0)}${ch("porta",2,"2 · primo giorno",F.porta==2)}${ch("porta",4,"4 · primi due giorni",F.porta==4)}</div>
@@ -821,6 +843,8 @@ function vProfilo(){
  document.querySelectorAll("[data-eq]").forEach(c=>c.onclick=()=>{p[c.dataset.eq]=!p[c.dataset.eq];save();vProfilo();});
  document.querySelectorAll("[data-esc]").forEach(c=>c.onclick=()=>{p.escludi=tog(p.escludi,c.dataset.esc);save();vProfilo();});
  document.querySelectorAll("[data-day]").forEach(c=>c.onclick=()=>{const g=tog(p.giorni,c.dataset.day);p.giorni=DAYS.map(x=>x[0]).filter(x=>g.includes(x));save();vProfilo();});
+ document.querySelectorAll("[data-part]").forEach(c=>c.onclick=()=>{p.part=c.dataset.part;save();vProfilo();});
+ document.querySelectorAll("[data-rient]").forEach(c=>c.onclick=()=>{p.rient=c.dataset.rient;save();vProfilo();});
  document.querySelectorAll("[data-famon]").forEach(c=>c.onclick=()=>{F.on=!F.on;save();vProfilo();});
  document.querySelectorAll("[data-porta]").forEach(c=>c.onclick=()=>{F.porta=+c.dataset.porta;save();vProfilo();});
  document.querySelectorAll("[data-st]").forEach(b=>b.onclick=()=>{const k=b.dataset.st;F[k]=clamp(F[k]+ +b.dataset.dv,0,12);save();vProfilo();});
@@ -871,7 +895,7 @@ function packCard(d,get){
  const trip=[];let x=nx;while(PD[x]&&!planHome(x)&&!trip.includes(x)){trip.push(x);x=nextDay(x);}
  if(!trip.length)return"";
  const pots=[];trip.forEach(t=>PD[t].forEach((v,mi)=>{if(v&&v[0]==="@"){const R=meal(resolveIds([v],S.plan.fam)[0]);if(R)pots.push(R.n+" · "+dayLbl(t)+" "+SLOTS[S.plan.slots[mi]].toLowerCase());}}));
- const E=[];trip.forEach(t=>{const ds=get(t);ds.slotItems.forEach((its,mi)=>{const v=ds.ids[mi];if(v&&v[0]==="@")return;its.forEach(i=>E.push({id:i.id,g:i.g}));});});
+ const E=[];trip.forEach(t=>{const ds=get(t);ds.slotItems.forEach((its,mi)=>{const v=ds.ids[mi];if(v&&v[0]==="@")return;if(hsOf(t).includes(S.plan.slots[mi]))return;its.forEach(i=>E.push({id:i.id,g:i.g}));});});
  const items=shopping(E);
  let h=`<div class="card"><h2>🧳 Da caricare per la partenza</h2><div class="mm" style="margin-top:-4px">Viaggio ${dayLbl(trip[0])}${trip.length>1?"–"+dayLbl(trip[trip.length-1]):""} (${trip.length} giorn${trip.length===1?"o":"i"}). Spunta man mano.</div>`;
  if(pots.length)h+=`<h3>Contenitori da casa ❄</h3>`+pots.map((t,i)=>{const k="pack:pot"+i,on=!!S.check[k];return`<div class="li ${on?"done":""}"><input type="checkbox" id="c-${k}" data-c="${k}" ${on?"checked":""}><label for="c-${k}">${esc(t)}</label></div>`;}).join("");
@@ -911,7 +935,7 @@ function vPiano(){
   const its=slotItems[mi],mt=sum(its),on=!!E[mi];
   const hasF=its.some(i=>FOODS[i.id].fr),hasH=its.some(i=>FOODS[i.id].ht);
   const swap=atHome?`data-swr="${d}:${w}"`:`data-sw="${mi}"`;
-  html+=`<div class="meal ${on?"eaten":""}"><div class="mh"><div><div class="slot">${SLOTS[s]}${atHome?" · in famiglia 🏠":ref?" · da casa 🍲":""}</div><div class="nm">${esc(m.n)}</div></div>
+  html+=`<div class="meal ${on?"eaten":""}"><div class="mh"><div><div class="slot">${SLOTS[s]}${atHome?" · in famiglia 🏠":ref?" · da casa 🍲":hsOf(d).includes(s)?" · a casa 🏠":""}</div><div class="nm">${esc(m.n)}</div></div>
   <div class="btns"><button class="mini ${on?"on":""}" data-e="${mi}">${on?"✓ Mangiato":"Mangiato?"}</button><button class="mini" ${swap} title="Cambia piatto">↻</button></div></div>
   ${atHome?`<div class="mm" style="margin:2px 0 2px">La tua porzione · pesi da crudo</div>`:""}
   ${its.map(i=>`<div class="food"><span>${esc(FOODS[i.id].n)}</span><em>${fmtQty(i.id,i.g)}</em></div>`).join("")}
@@ -1250,7 +1274,7 @@ function aiPrompt(q,avoid){
  const p=S.profilo,T=targets(p,false),meals=p.pasti==4?3.5:3;
  const cat=Object.keys(FOODS).map(id=>id+": "+FOODS[id].n).join("\n");
  const have=S.frigo.filter(id=>FOODS[id]).map(id=>FOODS[id].n);
- const fam=p.fam.on?`Famiglia: ${1+p.fam.ad} adulti, ${p.fam.ra} ragazzi 6-13 anni, ${p.fam.pi} bambini 1-5 anni (uno di circa 1 anno e mezzo).`:"Cucina per una persona.";
+ const fam=p.fam.on?`Famiglia: ${1+p.fam.ad} adulti${p.fam.ra?", "+p.fam.ra+" ragazzi 6-13 anni":""}${p.fam.pi?", "+p.fam.pi+" bambini 1-5 anni":""}.`:"Cucina per una persona.";
  return`Sei un cuoco di casa italiano. Proponi 3 ricette diverse tra loro per pranzo o cena, buone, realistiche e da fare a casa.
 ${have.length?"Ingredienti disponibili in casa (usane il più possibile; puoi aggiungere poco altro di comune):\n- "+have.join("\n- "):"Nessun ingrediente indicato: proponi ricette semplici con ingredienti comuni."}
 ${q?"Richiesta: "+q:""}
@@ -1263,7 +1287,7 @@ ${cat}
 
 Rispondi solo con un array JSON di 3 oggetti, così:
 [{"nome":"Pollo al curry con riso","minuti":35,"porta":"caldo","ingredienti":[{"id":"pollo_cr","g":150},{"id":null,"nome":"Curry in polvere","g":3,"kcal":325,"prot":14,"carb":25,"grassi":14,"reparto":"Dispensa","tag":[]}],"passaggi":["…","…"],"bambini":"…"}]
-Regole: "g" = grammi da crudo per UN adulto; "porta" = "caldo" se si porta in cabina e si scalda, "freddo" se è buono anche freddo, "no" se va mangiato a casa (pesce, fritti); "reparto" uno tra Carne e pesce, Frigo, Frutta e verdura, Pane e cereali, Dispensa; "tag" tra carne, maiale, pesce, latticini, uova; 3-6 passaggi brevi in italiano; "bambini" = un consiglio breve per i bambini piccoli (niente sale aggiunto, consistenze sicure). Niente sale e acqua tra gli ingredienti.`;
+Regole: "g" = grammi da crudo per UN adulto; "porta" = "caldo" se si porta in cabina e si scalda, "freddo" se è buono anche freddo, "no" se va mangiato a casa (pesce, fritti); "reparto" uno tra Carne e pesce, Frigo, Frutta e verdura, Pane e cereali, Dispensa; "tag" tra carne, maiale, pesce, latticini, uova; 3-6 passaggi brevi in italiano; "bambini" = ${p.fam.on&&p.fam.pi?"un consiglio breve per i bambini piccoli (niente sale aggiunto, consistenze sicure)":"stringa vuota"}. Niente sale e acqua tra gli ingredienti.`;
 }
 function aiToRecipes(arr){
  if(!Array.isArray(arr))return[];
@@ -1508,7 +1532,7 @@ function bindOCR(){
 function weekEntries(){
  const p=S.profilo,PD=S.plan.days,fam=S.plan.fam,get=solver(),out=[];
  Object.keys(PD).forEach(d=>{const ds=get(d),h=planHome(d);
-  ds.slotItems.forEach((its,mi)=>{const id=ds.ids[mi],ref=!!id&&id[0]==="@",place=ref||h?"casa":"cab",day=ref?id.slice(1,4):d;
+  ds.slotItems.forEach((its,mi)=>{const id=ds.ids[mi],ref=!!id&&id[0]==="@",place=ref||h||hsOf(d).includes(S.plan.slots[mi])?"casa":"cab",day=ref?id.slice(1,4):d;
    its.forEach(i=>out.push({id:i.id,g:i.g,place,day}));});
   if(fam&&fam[d]){const co=famCoef(p);["pra","cen"].forEach(w=>{const R=meal(fam[d][w]);if(R)R.it.forEach(([id,g])=>out.push({id,g:g*co,place:"casa",day:d}));});}
  });
