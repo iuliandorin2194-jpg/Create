@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Rifornimento">
-<meta name="app-version" content="1.10 · 14/11/2026">
+<meta name="app-version" content="1.11 · 14/11/2026">
 <title>Rifornimento – pasti a macro per chi viaggia</title>
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -92,6 +92,9 @@ summary{cursor:pointer;color:var(--acc);font-size:13px;padding:7px 0;font-weight
 .stepper span:last-child{display:flex;align-items:center;gap:12px}
 .stepper button{width:34px;height:34px;border-radius:50%;border:1px solid var(--line);background:var(--card2);color:var(--tx);font-size:18px;cursor:pointer}
 .stepper b{min-width:14px;text-align:center}
+header{flex-wrap:wrap;row-gap:8px}
+header h1{min-width:0}
+@media (max-width:359px){.mode{margin-left:0;width:100%}.mode button{flex:1}}
 .mode{margin-left:auto;display:flex;background:var(--card2);border:1px solid var(--line);border-radius:999px;padding:3px;flex:none}
 .mode button{border:0;background:none;color:var(--mut);font-size:13px;font-weight:600;padding:7px 10px;border-radius:999px;cursor:pointer;white-space:nowrap}
 .mode button.on{background:var(--acc);color:#14171a}
@@ -622,7 +625,7 @@ function normalize(x){
 }
 let S;
 try{S=JSON.parse(localStorage.getItem(KEY));}catch(e){S=null;}
-S=normalize(S);syncMine();fixRoles();
+S=normalize(S);pruneAiFoods();syncMine();fixRoles();
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
@@ -669,7 +672,15 @@ function bindStale(after){const b=$("#stale");if(b)b.onclick=()=>{if(!S.profilo.
 
 function go(v){S.view=v;save();render();window.scrollTo(0,0);}
 document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>go(b.dataset.v));
+// lunedì della settimana in corso: "mangiato" e le spunte del carico valgono solo per questa settimana
+function weekId(){const d=new Date();d.setHours(12,0,0,0);d.setDate(d.getDate()-((d.getDay()+6)%7));return d.toISOString().slice(0,10);}
+function newWeekReset(){const w=weekId();if(S.eatWeek===w)return;
+ if(S.eatWeek){S.eaten={};Object.keys(S.check).forEach(k=>{if(k.startsWith("pack:"))delete S.check[k];});}S.eatWeek=w;save();}
+// ingredienti creati da Claude per ricette poi non salvate: si tolgono
+function pruneAiFoods(){const used=new Set(S.frigo.concat(...S.myRec.map(r=>r.it.map(x=>x[0]))));
+ Object.keys(S.myFoods).forEach(id=>{if(S.myFoods[id].ai&&!used.has(id)){delete S.myFoods[id];delete S.prezzi[id];}});}
 function render(){
+ newWeekReset();
  renderMode();
  document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("on",b.dataset.v===S.view));
  ({piano:vPiano,ricette:vRicette,spesa:vSpesa,profilo:vProfilo}[S.view]||vPiano)();
@@ -1106,7 +1117,7 @@ function aiToRecipes(arr){
    let id=x.id&&FOODS[x.id]?x.id:null;
    if(!id&&x.nome){id=matchFood(String(x.nome))||Object.keys(FOODS).find(k=>norm(FOODS[k].n)===norm(x.nome))||null;
     if(!id&&num(x.kcal)>=0&&x.kcal!=null){id="u"+Date.now().toString(36)+Math.random().toString(36).slice(2,5);
-     S.myFoods[id]={n:String(x.nome).slice(0,60),k:num(x.kcal),p:num(x.prot),c:num(x.carb),f:num(x.grassi),rep:REPS.includes(x.reparto)?x.reparto:"Dispensa",pk:[0,""],eur:0,fr:x.reparto==="Frigo"||x.reparto==="Carne e pesce"?1:0,tg:(Array.isArray(x.tag)?x.tag:[]).filter(t=>TGS.includes(t))};
+     S.myFoods[id]={ai:1,n:String(x.nome).slice(0,60),k:num(x.kcal),p:num(x.prot),c:num(x.carb),f:num(x.grassi),rep:REPS.includes(x.reparto)?x.reparto:"Dispensa",pk:[0,""],eur:0,fr:x.reparto==="Frigo"||x.reparto==="Carne e pesce"?1:0,tg:(Array.isArray(x.tag)?x.tag:[]).filter(t=>TGS.includes(t))};
      FOODS[id]=S.myFoods[id];}}
    if(id&&!it.some(y=>y[0]===id))it.push([id,g,autoRole(id)]);});
   return{id:"ai",n:String(r.nome||"Ricetta di Claude").slice(0,80),min:Math.round(num(r.minuti))||30,porta:r.porta==="caldo"||r.porta==="freddo"?r.porta:null,
@@ -1362,8 +1373,8 @@ function spesaLists(){
  return lists;
 }
 function vSpesa(){
- if(!S.plan){$("#app").innerHTML=`<div class="empty">Genera prima il piano.<button class="btn" onclick="go('profilo')">Vai agli obiettivi</button></div>`;return;}
- const lists=spesaLists(),canSplit=Object.keys(S.plan.days).length>=4;
+ // senza piano la lista automatica non c'è, ma i prodotti aggiunti a mano o con la foto sì
+ const lists=S.plan?spesaLists():[],canSplit=!!S.plan&&Object.keys(S.plan.days).length>=4;
  const grand=lists.reduce((a,l)=>a+l.items.reduce((b,x)=>b+x.cost,0),0),mine=Object.keys(S.prezzi).length;
  const exCost=x=>x.p>0?x.p*(x.qty||1):0,exTot=S.extra.reduce((a,x)=>a+exCost(x),0);
  const recent=S.recentEx.filter(r=>!S.extra.some(x=>!x.ok&&norm(x.n)===norm(r.n))).slice(0,12);
@@ -1380,6 +1391,7 @@ function vSpesa(){
   ${S.extra.length?`<h3>Nella lista</h3>`+S.extra.map((x,i)=>`<div class="li ${x.ok?"done":""}"><input type="checkbox" id="ex-${i}" data-exc="${i}" ${x.ok?"checked":""}><label for="ex-${i}">${esc(x.n)}<small>${x.q?esc(x.q):(x.qty||1)+(x.p?" × "+eur(x.p):"")}</small></label><button class="pr ${x.p?"mine":""}" data-exp="${i}" title="Tocca per il prezzo">${x.p?eur(exCost(x)):"€ ?"}</button><button class="mini" data-exd="${i}" aria-label="Togli">✕</button></div>`).join("")+
    `<div class="tot"><span class="mm">Stima aggiunte</span><b>≈ ${eur(exTot)}</b></div>`:""}
  </div>`;
+ if(!S.plan)html+=`<div class="card"><div class="mm">La lista dei pasti compare quando generi il piano.</div><button class="btn ghost sm" onclick="go('profilo')">Vai agli obiettivi</button></div>`;
  if(canSplit)html+=`<div class="card"><div class="chips"><span class="chip ${!S.split?"on":""}" data-sp="0">Una spesa</span><span class="chip ${S.split?"on":""}" data-sp="1">Due spese (fresco a metà settimana)</span></div></div>`;
  lists.forEach(L=>{let rep="",sub=0;
   html+=`<div class="card"><h2>${esc(L.t)}</h2>${L.sub?`<div class="mm" style="margin-top:-4px">${esc(L.sub)}</div>`:""}`;
