@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Rifornimento">
-<meta name="app-version" content="1.13 · 14/11/2026">
+<meta name="app-version" content="1.14 · 14/11/2026">
 <title>Rifornimento – pasti a macro per chi viaggia</title>
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -983,6 +983,25 @@ const hasIng=id=>S.frigo.includes(id)||EQ.some(g=>g.includes(id)&&g.some(x=>S.fr
 const perPortion=R=>sum(R.it.map(([id,g])=>({id,g})));
 function searchFoods(q){const w=norm(q).split(/\s+/).filter(Boolean);if(!w.length)return[];
  return Object.keys(FOODS).filter(id=>{const n=norm(FOODS[id].n);return w.every(x=>n.includes(x));}).sort((a,b)=>FOODS[a].n.length-FOODS[b].n.length).slice(0,14);}
+// parole di tutti i giorni → ingrediente dell'app
+const ALIAS={pollo:"pollo_cr","petto di pollo":"pollo_cr",cosce:"cosce",coscia:"cosce",tacchino:"tacch_cr",macinato:"macinato","carne macinata":"macinato",manzo:"manzo",vitello:"vitello",
+ maiale:"lonza",uovo:"uova",uova:"uova",tonno:"tonno",salmone:"salmone_f",merluzzo:"merluzzo",gamberi:"gamberi",pomodoro:"pomodori",pomodori:"pomodori",pomodorini:"pomodorini",
+ patata:"patate",patate:"patate",carota:"carote_n",carote:"carote_n",cipolla:"cipolla",cipolle:"cipolla",latte:"latte",pane:"pane",pasta:"pasta",riso:"riso",
+ mozzarella:"mozzarella",prosciutto:"cotto","prosciutto cotto":"cotto","prosciutto crudo":"crudo",formaggio:"grana",parmigiano:"grana",grana:"grana",ceci:"ceci",fagioli:"fagioli",
+ lenticchie:"lentic",piselli:"piselli",spinaci:"spinaci",insalata:"insalata",peperone:"peperoni",peperoni:"peperoni",melanzana:"melanzane",melanzane:"melanzane",
+ funghi:"funghi",zucca:"zucca",zucchina:"zucchine",zucchine:"zucchine",broccolo:"broccoli",broccoli:"broccoli",salsiccia:"salsiccia",salsicce:"salsiccia",burro:"burro",
+ yogurt:"yogurt",olio:"olio",polenta:"farina_mais",couscous:"couscous","cous cous":"couscous",passata:"passata",sugo:"passata",pelati:"pelati",farina:"farina",
+ piadina:"piadina",piadine:"piadina",ricotta:"ricotta",feta:"feta",wurstel:"wurstel",würstel:"wurstel",tofu:"tofu",quinoa:"quinoa",avocado:"avocado",limone:"limone",mais:"mais"};
+// trova l'ingrediente più probabile per una parola scritta (anche al singolare o al plurale)
+function bestFood(term){const t=norm(term).trim().replace(/\s+/g," ");if(!t)return null;
+ if(ALIAS[t]&&FOODS[ALIAS[t]])return ALIAS[t];
+ const ex=Object.keys(FOODS).find(id=>norm(FOODS[id].n)===t);if(ex)return ex;
+ let r=searchFoods(t);if(r.length)return r.find(id=>norm(FOODS[id].n).startsWith(t))||r[0];
+ const cut=t.split(" ").map(w=>w.length>4?w.slice(0,-1):w).join(" ");r=searchFoods(cut);return r[0]||null;}
+const QUICK=[["🥩 Carne e pesce",["pollo_cr","macinato","tacch_cr","salsiccia","manzo","uova","tonno","salmone_f","merluzzo","cotto"]],
+ ["🥦 Verdure",["zucchine","pomodori","pomodorini","patate","spinaci","peperoni","carote_n","cipolla","insalata","melanzane","funghi","broccoli"]],
+ ["🍝 Dispensa",["pasta","riso","pane","piadina","ceci","fagioli","lentic","passata","farina_mais","couscous"]],
+ ["🧀 Frigo",["mozzarella","grana","ricotta","stracchino","latte","yogurt","burro"]]];
 // casella di ricerca ingredienti: aggiorna solo i risultati, così la tastiera resta aperta
 function bindSearch(pref,onPick){
  const inp=$("#"+pref+"-q"),out=$("#"+pref+"-res");if(!inp)return;
@@ -1052,7 +1071,7 @@ const NICK={pollo_cr:"pollo",cosce:"pollo",tacch_cr:"tacchino",macinato:"carne m
  pasta_int:"pasta integrale",pane_int:"pane integrale",cottage:"fiocchi di latte",tacchino:"fesa di tacchino",pollo:"pollo",insalata:"insalata",bun:"panini",gnocchi:"gnocchi",
  ceci:"ceci",fagioli:"fagioli",mais:"mais",funghi:"funghi",spinaci:"spinaci",farro:"farro",orzo:"orzo",riso:"riso",pasta:"pasta",couscous:"cous cous",cipolla:"cipolla",
  passata:"passata",pelati:"pelati",sgombro:"sgombro",piselli:"piselli",merluzzo:"merluzzo",platessa:"platessa",orata:"orata",branzino:"branzino",gamberi:"gamberi",
- manzo:"manzo",vitello:"vitello",lonza:"lonza",braciola:"braciole",salsiccia:"salsiccia",scamorza:"scamorza",bietole:"bietole",noodles:"noodles",tortellini:"tortellini"};
+ manzo:"manzo",vitello:"vitello",lonza:"lonza",braciola:"braciole",salsiccia:"salsiccia",scamorza:"scamorza",bietole:"bietole",noodles:"noodles",tortellini:"tortellini",cotto:"prosciutto cotto",pane:"pane"};
 const sn=id=>NICK[id]||FOODS[id].n.split(/[(/]/)[0].trim().toLowerCase();
 const list=a=>a.length<2?a.join(""):a.slice(0,-1).join(", ")+" e "+a[a.length-1];
 const cap=t=>t.charAt(0).toUpperCase()+t.slice(1);
@@ -1324,17 +1343,22 @@ function vRicette(){
  const tabs=[["frigo","🧊 Cosa ho in casa"],["tutte","📖 Tutte"],["mie","⭐ Le mie"]];
  let html=`<div class="tabs">${tabs.map(([k,l])=>`<span class="chip ${RV.tab===k?"on":""}" data-rt="${k}">${l}</span>`).join("")}</div>`;
  if(RV.tab==="frigo"){
-  html+=`<div class="card"><h2>🧊 Cosa hai in casa?</h2><div class="mm">Scrivi quello che c'è in frigo e in dispensa. L'app ti propone le ricette più vicine, con cosa sostituire, e ti inventa piatti nuovi con i tuoi ingredienti.</div>
-   ${searchBox("fr","Cerca: pollo, zucchine, riso…")}
+  const sc=S.frigo.length?REC.map(R=>({R,m:matchRec(R)})).filter(x=>x.m.proOk&&x.m.pct>=40).sort((a,b)=>b.m.pct-a.m.pct||a.m.swaps.length-b.m.swaps.length).slice(0,12):[];
+  RV.ideas=S.frigo.length?makeIdeas():[];
+  html+=`<div class="card"><h2>🧊 Cosa hai in casa?</h2><div class="mm">Tocca gli ingredienti che hai, oppure scrivili tutti insieme (es. <i>pollo, zucchine, riso</i>) e premi Invio. Non servono quantità: le ricette compaiono da sole.</div>
+   ${searchBox("fr","Es. pollo, zucchine, riso e uova")}
+   <button class="btn sm" id="fr-add">➕ Aggiungi quello che ho scritto</button>
+   ${RV.frMsg?`<div class="mm" style="color:var(--acc);margin-top:6px">${esc(RV.frMsg)}</div>`:""}
    <div class="chips" style="margin-top:10px">${S.frigo.map(id=>`<span class="chip on" data-unfr="${id}">${esc(FOODS[id]?FOODS[id].n:id)}<span class="x">✕</span></span>`).join("")}</div>
-   ${S.frigo.length?`<button class="mini" id="fr-clr" style="margin-top:10px">Svuota</button>`:""}</div>`;
+   ${S.frigo.length?`<div class="status ${sc.length||RV.ideas.length?"ok":"info"}">🔎 ${sc.length||RV.ideas.length?`Trovate ${sc.length} ricette vicine e ${RV.ideas.length} piatti nuovi: guarda qui sotto.`:"Ancora nessuna ricetta: aggiungi una proteina (carne, pesce, uova, legumi, formaggio)."}</div><button class="mini" id="fr-clr" style="margin-top:8px">Svuota</button>`:""}
+   <details ${S.frigo.length<3||RV.qOpen?"open":""} id="qk-box"><summary>Scelta veloce: tocca quello che hai</summary>
+    ${QUICK.map(([g,ids])=>`<div class="mm" style="margin:8px 0 4px">${g}</div><div class="chips">${ids.filter(id=>FOODS[id]).map(id=>`<span class="chip ${S.frigo.includes(id)?"on":""}" data-qk="${id}">${esc(sn(id))}</span>`).join("")}</div>`).join("")}
+   </details></div>`;
   html+=aiCard();
   if(S.frigo.length){
-   const sc=REC.map(R=>({R,m:matchRec(R)})).filter(x=>x.m.proOk&&x.m.pct>=40).sort((a,b)=>b.m.pct-a.m.pct||a.m.swaps.length-b.m.swaps.length).slice(0,12);
    const shown=RV.more?sc:sc.slice(0,5);
    html+=`<div class="card"><h2>🎯 Le ricette più vicine</h2>${sc.length?`<div class="mm">Ordinate da quella che puoi fare subito. Se ti manca qualcosa, l'app ti dice con cosa sostituirlo.</div>`+shown.map(x=>recCard(x.R,{match:x.m})).join("")+(sc.length>shown.length?`<button class="btn ghost sm" id="more">Mostra altre ${sc.length-shown.length}</button>`:""):
     `<div class="mm">Nessuna ricetta si avvicina abbastanza: guarda le idee qui sotto.</div>`}</div>`;
-   RV.ideas=makeIdeas();
    html+=`<div class="card"><h2>✨ Piatti nuovi con i tuoi ingredienti</h2>${RV.ideas.length?`<div class="mm">Creati apposta con quello che hai. Se ti piace, salvalo o personalizzalo: diventa una ricetta tua.</div>`+RV.ideas.map((R,i)=>recCard(R,{key:"idea"+i,save:1})).join(""):
     `<div class="mm">Aggiungi almeno una proteina (carne, pesce, uova, legumi, formaggio, affettato, tofu…): da lì l'app costruisce il piatto.</div>`}</div>`;
   }
@@ -1353,7 +1377,15 @@ function vRicette(){
  document.querySelectorAll("[data-rt]").forEach(c=>c.onclick=()=>{RV.tab=c.dataset.rt;RV.place=null;vRicette();});
  document.querySelectorAll("details[data-open]").forEach(d=>d.ontoggle=()=>{if(d.open)RV.open=d.dataset.open;else if(RV.open===d.dataset.open)RV.open=null;});
  bindAI();
- bindSearch("fr",id=>{RV.more=false;if(!S.frigo.includes(id))S.frigo.push(id);save();vRicette();setTimeout(()=>{const i=$("#fr-q");if(i)i.focus();},0);});
+ bindSearch("fr",id=>{RV.more=false;RV.frMsg="";if(!S.frigo.includes(id))S.frigo.push(id);save();vRicette();setTimeout(()=>{const i=$("#fr-q");if(i)i.focus();},0);});
+ // Invio: aggiunge tutti gli ingredienti scritti, separati da virgola o "e"
+ const fq=$("#fr-q"),addAll=()=>{
+  const parts=fq.value.split(/,|;|\n|\be\b|\bcon\b/i).map(x=>x.trim()).filter(Boolean),miss=[];
+  parts.forEach(t=>{const id=bestFood(t);if(id){if(!S.frigo.includes(id))S.frigo.push(id);}else miss.push(t);});
+  RV.more=false;RV.frMsg=miss.length?"Non ho trovato: "+miss.join(", ")+". Prova un'altra parola o crealo dalla ricerca.":"";save();vRicette();setTimeout(()=>{const i=$("#fr-q");if(i)i.focus();},0);};
+ if(fq){fq.onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();addAll();}};$("#fr-add").onclick=addAll;}
+ const qb=$("#qk-box");if(qb)qb.ontoggle=()=>{RV.qOpen=qb.open;};
+ document.querySelectorAll("[data-qk]").forEach(c=>c.onclick=()=>{const id=c.dataset.qk;S.frigo=S.frigo.includes(id)?S.frigo.filter(x=>x!==id):S.frigo.concat(id);RV.more=false;RV.frMsg="";save();const y=window.scrollY;RV.qOpen=true;vRicette();window.scrollTo(0,y);});
  document.querySelectorAll("[data-unfr]").forEach(c=>c.onclick=()=>{S.frigo=S.frigo.filter(x=>x!==c.dataset.unfr);save();vRicette();});
  const clr=$("#fr-clr");if(clr)clr.onclick=()=>{S.frigo=[];save();vRicette();};
  const rq=$("#rq");if(rq){rq.oninput=()=>{RV.q=rq.value;clearTimeout(rq._t);rq._t=setTimeout(()=>{vRicette();const n=$("#rq");n.focus();n.setSelectionRange(n.value.length,n.value.length);},350);};}
