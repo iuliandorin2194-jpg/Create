@@ -5,10 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0b1a2e">
 <title>Impegni</title>
+<meta name="app-version" content="1.5 · 14/11/2026">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
 <style>
+  .ver { position:fixed; top:calc(6px + env(safe-area-inset-top)); right:8px; z-index:50; pointer-events:none; font-size:11px; color:var(--muted); background:rgba(11,26,46,.85); border:1px solid var(--line); border-radius:999px; padding:2px 8px; }
   :root {
     --bg:#0b1a2e; --card:#13284a; --card2:#1a3360; --line:#24406e;
     --text:#eef3fa; --muted:#93a7c4; --accent:#4c8dff; --accent2:#2f6fe0;
@@ -175,6 +177,7 @@
 </style>
 </head>
 <body>
+<div class="ver" id="ver"></div>
 <main>
   <section class="stato" id="stato"></section>
 
@@ -685,5 +688,6 @@ setInterval(renderStato, 30000);
 document.addEventListener('visibilitychange', () => { if (!document.hidden) render(); });
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
 </script>
+<script>document.getElementById("ver").textContent="v"+document.querySelector('meta[name="app-version"]').content.split(" ·")[0];</script>
 </body>
 </html>
