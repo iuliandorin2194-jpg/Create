@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Rifornimento">
-<meta name="app-version" content="1.11 · 14/11/2026">
+<meta name="app-version" content="1.12 · 14/11/2026">
 <title>Rifornimento – pasti a macro per chi viaggia</title>
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -283,6 +283,7 @@ const FOODS={
  fragole:{n:"Fragole",k:32,p:.7,c:7.7,f:.3,fr:1,rep:"Frutta e verdura",pk:[250,"vaschetta 250 g"],eur:2.5},
  uva:{n:"Uva",k:69,p:.7,c:18,f:.2,rep:"Frutta e verdura",pk:[0,""],eur:3},
  limone:{n:"Limoni",k:29,p:1,c:9,f:.3,u:100,ul:["limone","limoni"],rep:"Frutta e verdura",pk:[0,""],eur:.35},
+ sfoglia:{n:"Pasta sfoglia (rotolo)",k:380,p:6,c:35,f:24,fr:1,rep:"Frigo",pk:[230,"rotolo 230 g"],eur:1.5},
  impasto:{n:"Impasto per pizza",k:250,p:8,c:50,f:3,fr:1,rep:"Frigo",pk:[400,"panetto 400 g"],eur:2.5}
 };
 // ruolo: P = si scala per le proteine, C = si scala per le calorie, F = porzione fissa
@@ -435,7 +436,81 @@ const REC=[
  {id:"r54",s:["pra","cen"],n:"Lonza al forno con zucca e patate",min:50,porta:"caldo",it:[["lonza",150,"P"],["zucca",150,"F"],["patate",180,"C"],["olio",10,"C"]],
   st:["Forno a 200 °C: zucca e patate a cubetti con olio e rosmarino per 20 minuti.","Aggiungi la lonza a fette spesse e cuoci altri 20 minuti."],kid:"Zucca e patate schiacciate, carne finissima."},
  {id:"r55",s:["pra","cen"],n:"Riso, piselli e uova strapazzate",min:20,porta:"caldo",it:[["riso",80,"C"],["uova",110,"P"],["piselli",100,"F"],["grana",10,"P"],["olio",8,"C"]],
-  st:["Lessa il riso.","Salta i piselli con l'olio, aggiungi le uova sbattute col grana e strapazza.","Unisci il riso e mescola."],kid:"Uova ben cotte, piselli schiacciati."}
+  st:["Lessa il riso.","Salta i piselli con l'olio, aggiungi le uova sbattute col grana e strapazza.","Unisci il riso e mescola."],kid:"Uova ben cotte, piselli schiacciati."},
+ {id:"r56",s:["pra","cen"],n:"Pasta alla carbonara",min:20,porta:null,it:[["pasta",90,"C"],["pancetta",40,"C"],["uova",55,"P"],["pecorino",20,"P"]],
+  st:["Rosola la pancetta in padella senza olio.","Sbatti le uova con il pecorino e pepe.","Scola la pasta, uniscila alla pancetta a fuoco spento e versa le uova mescolando veloce, con un po' d'acqua di cottura."],kid:"Per il piccolo rimetti la sua porzione sul fuoco finché l'uovo è ben cotto."},
+ {id:"r57",s:["pra","cen"],n:"Pasta all'amatriciana",min:25,porta:"caldo",it:[["pasta",90,"C"],["pancetta",40,"C"],["pelati",150,"F"],["cipolla",20,"F"],["pecorino",15,"P"]],
+  st:["Rosola pancetta e cipolla.","Aggiungi i pelati schiacciati e cuoci 15 minuti.","Condisci la pasta e finisci con il pecorino."],kid:"Poca pancetta, è salata."},
+ {id:"r58",s:["pra","cen"],n:"Pasta alla norma",min:35,porta:"caldo",it:[["pasta",90,"C"],["melanzane",150,"F"],["pelati",150,"F"],["ricotta",60,"P"],["olio",10,"C"]],
+  st:["Cuoci le melanzane a cubetti in padella con l'olio finché sono dorate.","Aggiungi i pelati e cuoci 15 minuti con basilico.","Condisci la pasta e aggiungi la ricotta a fiocchi."],kid:"Melanzane senza buccia, ben cotte."},
+ {id:"r59",s:["pra","cen"],n:"Risotto agli asparagi",min:35,porta:"caldo",it:[["riso",80,"C"],["asparagi",150,"F"],["cipolla",20,"F"],["grana",20,"P"],["burro",8,"C"]],
+  st:["Taglia gli asparagi a rondelle (punte a parte) e falli insaporire con la cipolla.","Tosta il riso e aggiungi brodo caldo poco alla volta per 16–18 minuti; le punte negli ultimi 5.","Manteca con burro e grana."],kid:"Asparagi ben cotti e tritati."},
+ {id:"r60",s:["pra","cen"],n:"Scaloppine al limone con purè",min:35,porta:"caldo",it:[["vitello",130,"P"],["farina",10,"C"],["patate",250,"C"],["latte",50,"C"],["burro",8,"C"]],
+  st:["Lessa le patate e schiacciale con il latte caldo.","Infarina le fettine e cuocile nel burro 2 minuti per lato.","Sfuma con succo di limone e servi con il purè."],kid:"Carne tagliata finissima nel purè."},
+ {id:"r61",s:["pra","cen"],n:"Saltimbocca alla romana con spinaci",min:25,porta:"caldo",it:[["vitello",120,"P"],["crudo",20,"P"],["spinaci",200,"F"],["burro",8,"C"],["pane",60,"C"]],
+  st:["Appoggia una fetta di crudo e una foglia di salvia su ogni fettina, ferma con uno stecchino.","Cuoci nel burro 2 minuti per lato.","Salta gli spinaci nella stessa padella e servi con il pane."],kid:"Senza crudo (è salato), carne a pezzettini."},
+ {id:"r62",s:["pra","cen"],n:"Pollo ai peperoni",min:50,porta:"caldo",it:[["cosce",200,"P"],["peperoni",200,"F"],["pelati",100,"F"],["cipolla",30,"F"],["olio",8,"C"],["pane",60,"C"]],
+  st:["Rosola il pollo nell'olio con la cipolla.","Aggiungi peperoni a strisce e pelati.","Cuoci coperto 35 minuti e servi con il pane."],kid:"Pollo sfilacciato, peperoni senza pelle."},
+ {id:"r63",s:["pra","cen"],n:"Coniglio alla cacciatora con polenta",min:60,porta:"caldo",it:[["coniglio",180,"P"],["pelati",120,"F"],["olive",20,"C"],["farina_mais",70,"C"],["olio",8,"C"]],
+  st:["Rosola il coniglio a pezzi con olio, aglio e rosmarino.","Aggiungi pelati e olive e cuoci coperto 40 minuti.","Servi con la polenta."],kid:"Attenzione agli ossicini: carne controllata e sfilacciata."},
+ {id:"r64",s:["pra","cen"],n:"Agnello al forno con patate",min:70,porta:"caldo",it:[["agnello",160,"P"],["patate",250,"C"],["olio",8,"C"]],
+  st:["Forno a 190 °C.","Metti in teglia agnello e patate a spicchi con olio, aglio e rosmarino.","Cuoci circa 55 minuti, girando a metà."],kid:"Carne senza ossa, tagliata fine."},
+ {id:"r65",s:["pra","cen"],n:"Braciole di maiale con verza e patate",min:40,porta:"caldo",it:[["braciola",180,"P"],["verza",200,"F"],["patate",150,"C"],["olio",8,"C"]],
+  st:["Stufa la verza a strisce con le patate a cubetti e mezzo bicchiere d'acqua, 20 minuti.","Cuoci le braciole in padella 5 minuti per lato.","Servi insieme."],kid:"Verza e patate schiacciate, carne finissima."},
+ {id:"r66",s:["pra","cen"],n:"Würstel e patate in padella",min:30,porta:"caldo",it:[["wurstel",100,"P"],["patate",250,"C"],["cipolla",40,"F"],["olio",5,"C"]],
+  st:["Lessa le patate a cubetti 10 minuti.","Rosola la cipolla, aggiungi patate e würstel a rondelle.","Fai dorare 10 minuti."],kid:"I würstel sono salati: per il piccolo solo patate, o würstel tagliati per il lungo e a pezzetti."},
+ {id:"r67",s:["pra","cen"],n:"Orata al forno con patate e pomodorini",min:40,porta:null,it:[["orata",180,"P"],["patate",220,"C"],["pomodorini",100,"F"],["olive",15,"C"],["olio",8,"C"]],
+  st:["Forno a 200 °C: patate a fettine sottili con l'olio per 20 minuti.","Aggiungi orata, pomodorini e olive.","Cuoci altri 15 minuti."],kid:"Pesce sbriciolato, controlla le spine."},
+ {id:"r68",s:["pra","cen"],n:"Branzino al cartoccio con zucchine e patate",min:40,porta:null,it:[["branzino",180,"P"],["zucchine",150,"F"],["pomodorini",80,"F"],["patate",200,"C"],["olio",8,"C"]],
+  st:["Lessa le patate.","Chiudi nella carta forno il branzino con zucchine a rondelle, pomodorini e olio.","Forno a 200 °C per 18–20 minuti."],kid:"Pesce sbriciolato, controlla le spine."},
+ {id:"r69",s:["pra","cen"],n:"Calamari in umido con piselli",min:45,porta:null,it:[["calamari",200,"P"],["piselli",120,"F"],["pelati",120,"F"],["pane",70,"C"],["olio",8,"C"]],
+  st:["Rosola i calamari ad anelli nell'olio con aglio.","Aggiungi pelati e cuoci coperto 25 minuti.","Unisci i piselli per altri 10 minuti; servi con il pane."],kid:"Calamari tagliati piccolissimi (sono gommosi), oppure solo piselli e sugo."},
+ {id:"r70",s:["pra","cen"],n:"Baccalà alla livornese con polenta",min:40,porta:null,it:[["baccala",180,"P"],["pelati",150,"F"],["cipolla",30,"F"],["olive",15,"C"],["farina_mais",60,"C"],["olio",8,"C"]],
+  st:["Soffriggi la cipolla, aggiungi pelati e olive: 10 minuti.","Adagia il baccalà a pezzi e cuoci coperto 15 minuti.","Servi con la polenta."],kid:"Controlla le spine; il baccalà può essere salato, assaggialo prima."},
+ {id:"r71",s:["pra","cen"],n:"Tonno scottato con finocchi e pane",min:15,porta:null,it:[["tonno_f",150,"P"],["finocchi",150,"F"],["rucola",30,"F"],["pane",80,"C"],["olio",10,"C"]],
+  st:["Affetta sottili i finocchi e condiscili con olio e limone.","Scotta il tonno sulla piastra 2 minuti per lato (per i bambini di più).","Servi su finocchi e rucola con il pane."],kid:"Tonno ben cotto fino al centro."},
+ {id:"r72",s:["pra","cen"],n:"Tortellini al pomodoro e piselli",min:15,porta:"caldo",it:[["tortellini",150,"C"],["passata",100,"F"],["piselli",80,"F"],["grana",15,"P"],["olio",5,"C"]],
+  st:["Scalda passata, piselli e olio 8 minuti.","Lessa i tortellini.","Condisci e aggiungi il grana."],kid:"Tortellini tagliati a metà."},
+ {id:"r73",s:["pra","cen"],n:"Pasta al forno con ragù e besciamella",min:60,porta:"caldo",it:[["pasta",90,"C"],["macinato",90,"P"],["passata",120,"F"],["besciamella",80,"C"],["mozzarella",40,"P"],["grana",10,"P"]],
+  st:["Prepara un ragù veloce con macinato e passata (20 minuti).","Cuoci la pasta al dente, mescolala con ragù, besciamella e mozzarella a cubetti.","In teglia con il grana: 20 minuti a 200 °C."],kid:"A pezzetti, lasciala intiepidire."},
+ {id:"r74",s:["pra","cen"],n:"Fajitas di pollo",min:25,porta:"freddo",it:[["wrap",124,"C"],["pollo_cr",140,"P"],["peperoni",120,"F"],["cipolla",40,"F"],["olio",8,"C"]],
+  st:["Taglia pollo, peperoni e cipolla a strisce.","Saltali in padella caldissima con olio, paprika e cumino, 8–10 minuti.","Scalda i wrap e farciscili."],kid:"Togli la sua porzione prima delle spezie, tutto a pezzettini."},
+ {id:"r75",s:["pra","cen"],n:"Tacos di manzo e fagioli in piadina",min:25,porta:"freddo",it:[["piadina",100,"C"],["macinato",90,"P"],["fagioli",80,"P"],["pomodori",80,"F"],["insalata",30,"F"],["olio",5,"C"]],
+  st:["Rosola il macinato con olio, paprika e cumino.","Aggiungi i fagioli schiacciati grossolanamente e cuoci 5 minuti.","Farcisci le piadine con carne, pomodori a cubetti e insalata."],kid:"Senza spezie piccanti, piadina a spicchi."},
+ {id:"r76",s:["pra","cen"],n:"Chili vegetariano con riso",min:35,porta:"caldo",it:[["fagioli",200,"P"],["mais",60,"C"],["peperoni",100,"F"],["pelati",150,"F"],["cipolla",30,"F"],["riso",70,"C"],["olio",8,"C"]],
+  st:["Rosola cipolla e peperoni a cubetti.","Aggiungi fagioli, mais, pelati, paprika e cumino: 20 minuti.","Servi con il riso lessato."],kid:"Senza peperoncino, fagioli schiacciati."},
+ {id:"r77",s:["pra","cen"],n:"Pollo al curry e cocco con riso",min:35,porta:"caldo",it:[["pollo_cr",150,"P"],["cocco",60,"C"],["cipolla",30,"F"],["carote_n",60,"F"],["riso",75,"C"],["olio",5,"C"]],
+  st:["Rosola cipolla, carote a rondelle e pollo a cubetti.","Aggiungi un cucchiaino di curry a persona e il latte di cocco: 15 minuti.","Servi con il riso lessato."],kid:"Togli la sua porzione prima del curry, o mettine pochissimo."},
+ {id:"r78",s:["pra","cen"],n:"Noodles saltati con pollo e verdure",min:25,porta:"caldo",it:[["noodles",80,"C"],["pollo_cr",130,"P"],["carote_n",60,"F"],["verza",80,"F"],["peperoni",60,"F"],["soia_s",15,"F"],["olio",8,"C"]],
+  st:["Cuoci i noodles come da confezione.","Salta pollo a strisce e verdure a julienne in padella caldissima, 6–8 minuti.","Unisci i noodles e la salsa di soia e mescola 1 minuto."],kid:"Poca salsa di soia (è salata), noodles tagliati corti."},
+ {id:"r79",s:["pra","cen"],n:"Riso alla cantonese",min:25,porta:"caldo",it:[["riso",80,"C"],["uova",55,"P"],["cotto",50,"P"],["piselli",80,"F"],["soia_s",10,"F"],["olio",8,"C"]],
+  st:["Lessa il riso e fallo raffreddare un po'.","Strapazza le uova, aggiungi cotto a cubetti e piselli.","Unisci il riso, la salsa di soia e salta 3 minuti."],kid:"Poca salsa di soia, uovo ben cotto."},
+ {id:"r80",s:["pra","cen"],n:"Tofu saltato con broccoli e riso",min:25,porta:"caldo",it:[["tofu",150,"P"],["broccoli",150,"F"],["carote_n",50,"F"],["soia_s",15,"F"],["riso",75,"C"],["olio",8,"C"]],
+  st:["Lessa il riso e sbollenta i broccoli 4 minuti.","Rosola il tofu a cubetti finché è dorato.","Aggiungi verdure e salsa di soia, salta 3 minuti e servi sul riso."],kid:"Tofu morbido a cubetti piccoli, broccoli schiacciati."},
+ {id:"r81",s:["pra","cen"],n:"Insalata greca con pane",min:10,porta:"freddo",it:[["feta",100,"P"],["pomodori",150,"F"],["cetrioli",100,"F"],["olive",30,"C"],["cipolla",20,"F"],["pane",90,"C"],["olio",10,"C"]],
+  st:["Taglia pomodori e cetrioli a pezzi, la cipolla sottile.","Aggiungi feta a cubetti, olive, olio e origano.","Servi con il pane."],kid:"Senza cipolla e olive intere; feta sbriciolata (è salata, poca)."},
+ {id:"r82",s:["pra","cen"],n:"Moussaka leggera",min:70,porta:"caldo",it:[["melanzane",200,"F"],["macinato",110,"P"],["pelati",100,"F"],["patate",120,"C"],["besciamella",80,"C"],["grana",10,"P"],["olio",5,"C"]],
+  st:["Griglia melanzane e patate a fette.","Prepara un ragù con macinato, pelati e un pizzico di cannella.","Alterna in teglia verdure e ragù, copri con besciamella e grana: 30 minuti a 190 °C."],kid:"A pezzetti, lasciala intiepidire."},
+ {id:"r83",s:["pra","cen"],n:"Piatto unico di quinoa, ceci e feta",min:25,porta:"freddo",it:[["quinoa",70,"C"],["ceci",150,"P"],["pomodorini",100,"F"],["cetrioli",80,"F"],["feta",40,"P"],["olio",10,"C"]],
+  st:["Sciacqua la quinoa e cuocila 15 minuti.","Taglia pomodorini e cetrioli.","Unisci tutto con ceci, feta sbriciolata e olio."],kid:"Ceci schiacciati, pomodorini in quattro."},
+ {id:"r84",s:["pra","cen"],n:"Hamburger nel panino con patate",min:40,porta:"caldo",it:[["bun",60,"C"],["macinato",140,"P"],["scamorza",30,"P"],["pomodori",50,"F"],["insalata",20,"F"],["patate",150,"C"],["olio",5,"C"]],
+  st:["Patate a spicchi in forno a 200 °C con l'olio, 30 minuti.","Cuoci gli hamburger 4 minuti per lato, con la scamorza sopra alla fine.","Componi i panini con pomodoro e insalata."],kid:"Hamburger ben cotto a pezzetti, pane morbido."},
+ {id:"r85",s:["pra","cen"],n:"Paella semplice di pollo e gamberi",min:40,porta:null,it:[["riso",85,"C"],["pollo_cr",80,"P"],["gamberi",70,"P"],["piselli",60,"F"],["peperoni",60,"F"],["pelati",60,"F"],["olio",10,"C"]],
+  st:["Rosola pollo a cubetti e peperoni nell'olio.","Aggiungi riso, pelati, paprika (e zafferano se c'è) e brodo caldo: 15 minuti senza mescolare troppo.","Unisci piselli e gamberi per gli ultimi 5 minuti."],kid:"Gamberi a pezzettini ben cotti."},
+ {id:"r86",s:["pra","cen"],n:"Ribollita",min:50,porta:"caldo",it:[["fagioli",200,"P"],["verza",120,"F"],["carote_n",60,"F"],["sedano",30,"F"],["pelati",80,"F"],["pane",80,"C"],["olio",10,"C"]],
+  st:["Soffriggi carote e sedano, aggiungi verza a strisce, pelati e acqua: 25 minuti.","Unisci i fagioli (metà schiacciati) e il pane raffermo a pezzi.","Cuoci altri 10 minuti e finisci con olio a crudo."],kid:"Va benissimo così, morbida."},
+ {id:"r87",s:["pra","cen"],n:"Pasta e patate con provola",min:35,porta:"caldo",it:[["pasta",60,"C"],["patate",150,"C"],["scamorza",50,"P"],["grana",10,"P"],["cipolla",20,"F"],["olio",8,"C"]],
+  st:["Soffriggi la cipolla, aggiungi patate a cubetti e acqua: 15 minuti.","Butta la pasta nella stessa pentola e cuocila lì.","A fuoco spento manteca con scamorza a cubetti e grana."],kid:"Perfetta così, cremosa."},
+ {id:"r88",s:["pra","cen"],n:"Polenta con stracchino e funghi",min:25,porta:"caldo",it:[["farina_mais",80,"C"],["stracchino",80,"P"],["funghi",120,"F"],["burro",5,"C"]],
+  st:["Cuoci i funghi a fette nel burro 10 minuti.","Prepara la polenta istantanea.","Servila calda con stracchino che si scioglie e i funghi."],kid:"Funghi tritati."},
+ {id:"r89",s:["pra","cen"],n:"Torta salata ricotta e spinaci",min:50,porta:"freddo",it:[["sfoglia",60,"C"],["ricotta",100,"P"],["spinaci",120,"F"],["uova",55,"P"],["grana",10,"P"]],
+  st:["Cuoci gli spinaci in padella, strizzali e tritali.","Mescolali con ricotta, uova e grana.","Versa nella sfoglia in teglia, ripiega i bordi e cuoci 35 minuti a 190 °C."],kid:"A fettine, tiepida."},
+ {id:"r90",s:["pra","cen"],n:"Peperoni ripieni di carne e riso",min:60,porta:"caldo",it:[["peperoni",250,"F"],["macinato",100,"P"],["riso",40,"C"],["grana",10,"P"],["pelati",80,"F"],["olio",8,"C"]],
+  st:["Lessa il riso al dente e mescolalo con macinato, grana e metà dei pelati.","Riempi i peperoni tagliati a metà.","In teglia con il resto dei pelati e l'olio: 40 minuti a 190 °C."],kid:"Solo il ripieno, a pezzetti."},
+ {id:"r91",s:["pra","cen"],n:"Vellutata di carote e lenticchie",min:30,porta:"caldo",it:[["carote_n",200,"F"],["lentic",200,"P"],["cipolla",30,"F"],["pane",70,"C"],["olio",8,"C"]],
+  st:["Cuoci carote a rondelle e cipolla in acqua che le copra, 15 minuti.","Aggiungi le lenticchie scolate e frulla.","Servi con crostini di pane e olio a crudo."],kid:"Perfetta così."},
+ {id:"r92",s:["pra","cen"],n:"Pasta con tonno, olive e pomodorini",min:15,porta:"freddo",it:[["pasta",90,"C"],["tonno",112,"P"],["pomodorini",120,"F"],["olive",20,"C"],["olio",8,"C"]],
+  st:["Cuoci la pasta.","Scalda in padella pomodorini tagliati, olive e olio per 5 minuti.","Aggiungi il tonno e la pasta e mescola."],kid:"Senza olive intere, pomodorini in quattro."}
 ];
 const meal=id=>MEALS.find(x=>x.id===id)||REC.find(x=>x.id===id);
 const isRec=id=>!!id&&REC.some(x=>x.id===id);
@@ -984,13 +1059,27 @@ const G={
  sauce:id=>["passata","pelati"].includes(id)
 };
 const isCookVeg=id=>FOODS[id].rep==="Frutta e verdura"&&!["cipolla","limone"].includes(id)&&FOODS[id].k<=90&&!["banana","mela","arancia","pere","kiwi","fragole","uva","limone","avocado"].includes(id)&&!G.potato(id)&&!["insalata","rucola","radicchio","cetrioli"].includes(id);
-function proG(id){const f=FOODS[id];const g=28/Math.max(f.p,1)*100;return f.u?f.u*Math.max(1,Math.round(g/f.u)):clamp(Math.round(g/10)*10,40,250);}
+// porzione di proteina: circa 28 g di proteine, ma non oltre circa 330 kcal
+function proG(id){const f=FOODS[id];const g=Math.min(28/Math.max(f.p,1)*100,330/Math.max(f.k,1)*100);return f.u?f.u*Math.max(1,Math.round(g/f.u)):clamp(Math.round(g/10)*10,40,250);}
 function carbG(id){const f=FOODS[id];if(f.u)return f.u*(id==="piadina"?1:id==="bun"?1:2);if(G.potato(id)||id==="gnocchi"||id==="riso_pr")return 250;if(id==="tortellini")return 125;if(G.polenta(id))return 70;if(G.bread(id))return 80;return 80;}
 function cookStep(p){if(G.rawMeat(p))return`Cuoci ${sn(p)} a pezzi in padella con l'olio, 8–12 minuti, finché è ben cotto.`;
  if(G.rawFish(p))return`Cuoci ${sn(p)} in padella con l'olio, 3–5 minuti per lato (i molluschi 5–8 minuti).`;
  if(G.vprot(p))return`Taglia ${sn(p)} a cubetti e rosolalo in padella con l'olio 6–8 minuti.`;
  if(G.legume(p))return/_s$/.test(p)?`Metti in ammollo ${sn(p)} la sera prima e lessali 40–60 minuti.`:`Sciacqua e scola ${sn(p)}.`;
  if(G.canned(p))return`Sgocciola ${sn(p)}.`;return"";}
+// verdure che stanno bene con ogni tipo di proteina (le prime sono le preferite)
+const AFF=[
+ [["pollo_cr","cosce","tacch_cr","maci_bianco","coniglio","pollo_sc"],["zucchine","peperoni","funghi","broccoli","carote_n","carote","asparagi","spinaci","zucca","carciofi"]],
+ [["manzo","vitello","macinato","agnello"],["funghi","peperoni","melanzane","pomodori","pomodorini","carote_n","carote","radicchio","rucola","spinaci"]],
+ [["lonza","braciola","salsiccia","wurstel"],["verza","funghi","zucca","spinaci","finocchi","broccoli","peperoni","porri"]],
+ [["merluzzo","platessa","orata","branzino","baccala","alici"],["pomodorini","zucchine","finocchi","asparagi","carciofi","spinaci","pomodori"]],
+ [["salmone_f","tonno_f","salmone","tonno","sgombro"],["asparagi","zucchine","spinaci","broccoli","finocchi","pomodorini","rucola","cetrioli"]],
+ [["gamberi","calamari","cozze"],["zucchine","pomodorini","asparagi","zucca","carciofi","piselli"]],
+ [["uova"],["zucchine","spinaci","asparagi","peperoni","carciofi","funghi","bietole","porri"]],
+ [["ceci","fagioli","lentic","ceci_s","fagioli_s","lentic_s"],["carote_n","carote","sedano","spinaci","bietole","zucca","pomodorini","verza","porri"]],
+ [["mozz_l","mozzarella","ricotta","stracchino","feta","cottage","scamorza"],["pomodorini","pomodori","melanzane","zucchine","spinaci","rucola","radicchio","funghi"]],
+ [["tofu","seitan"],["broccoli","peperoni","funghi","carote_n","carote","zucchine","verza"]]];
+const affOf=p=>{const g=AFF.find(x=>x[0].includes(p));return g?g[1]:[];};
 function makeIdeas(){
  const H=S.frigo.filter(id=>FOODS[id]),pick=f=>H.filter(f);
  const pros=pick(id=>G.rawMeat(id)||G.rawFish(id)||G.canned(id)||G.egg(id)||G.legume(id)||G.vprot(id)||G.cured(id)||G.freshCheese(id));
@@ -1000,8 +1089,11 @@ function makeIdeas(){
  const hasOnion=H.includes("cipolla");
  if(!pros.length&&!fcheese.length)return[];
  const out=[];let rot=0;
- const nxt=arr=>arr.length?arr[(rot++)%arr.length]:null;
- const vegs=(n,pool)=>{pool=pool||cveg;const r=[];for(let i=0;i<pool.length&&r.length<n;i++){const v=pool[(rot+i)%pool.length];if(!r.includes(v))r.push(v);}rot++;return r;};
+ let lastP=null;
+ const nxt=arr=>{if(!arr.length)return null;const x=arr[(rot++)%arr.length];if(pros.includes(x))lastP=x;return x;};
+ // sceglie le verdure dando la precedenza a quelle che stanno bene con la proteina scelta
+ const vegs=(n,pool)=>{pool=pool||cveg;const a=affOf(lastP),r=[];for(let i=0;i<pool.length;i++){const v=pool[(rot+i)%pool.length];if(!r.includes(v))r.push(v);}
+  rot++;return r.map((v,i)=>[a.includes(v)?0:1,i,v]).sort((x,y)=>x[0]-y[0]||x[1]-y[1]).slice(0,n).map(x=>x[2]);};
  const add=(n,it,st,o)=>{if(out.some(x=>x.n===n))return;const seen=new Set();it=it.filter(([id])=>{if(seen.has(id))return false;seen.add(id);return true;});
   out.push(Object.assign({id:"idea"+out.length,n:cap(n),it,st:st.filter(Boolean),min:25,porta:"caldo",kid:"Porzione a pezzetti, sale solo dopo aver tolto la sua."},o||{}));};
  const P=(f)=>pros.filter(f);
@@ -1034,7 +1126,7 @@ function makeIdeas(){
    [[p,proG(p),"P"]].concat(vit(vs)).concat(tomato&&G.legume(p)?[[tomato,100,"F"]]:[]).concat(br?[[br,70,"C"]]:[]).concat([["olio",10,"C"]]),
    [hasOnion?"Soffriggi un po' di cipolla nell'olio.":"Scalda l'olio in padella.",cookStep(p),`Aggiungi ${list(vs.map(sn))} a pezzi${tomato&&G.legume(p)?" e "+sn(tomato):""}, copri e cuoci 10–15 minuti.`,br?`Servi con ${sn(br)}.`:"Aggiusta di sale e servi."],{porta:G.rawFish(p)?null:"caldo",min:25});}
  // 5 frittata
- if(H.includes("uova")){const vs=vegs(2),ch=fcheese[0]||aged[0]||null,br=breads[0]||pots[0]||null;
+ if(H.includes("uova")){lastP="uova";const vs=vegs(2),ch=fcheese[0]||aged[0]||null,br=breads[0]||pots[0]||null;
   add(`Frittata ${vs.length?"di "+list(vs.map(sn)):"semplice"}${ch?" con "+sn(ch):""}`,
    [["uova",165,"P"]].concat(vit(vs)).concat(ch?[[ch,G.aged(ch)?10:40,"P"]]:[]).concat(br?[[br,carbG(br)*(G.potato(br)?.6:1),"C"]]:[]).concat([["olio",8,"C"]]),
    [vs.length?`Taglia ${list(vs.map(sn))} sottili e cuocili in padella con l'olio 8–10 minuti${br&&G.potato(br)?" insieme a "+sn(br)+" a cubetti piccoli":""}.`:"Scalda l'olio in padella.",`Sbatti le uova con un pizzico di sale${ch?" e "+sn(ch)+(G.aged(ch)?" grattugiato":" a pezzetti"):""}.`,"Versa sulle verdure e cuoci coperto a fuoco basso 8 minuti, gira e finisci 3–4 minuti.",br&&!G.potato(br)?`Servi con ${sn(br)}.`:""],{porta:"freddo",min:25,kid:"Ben cotta, a cubetti."});}
@@ -1068,7 +1160,71 @@ function makeIdeas(){
   add(`Polenta con ${list([sn(p)].concat(vs.map(sn)))}`,
    [["farina_mais",70,"C"],[p,proG(p),"P"]].concat(vit(vs)).concat(tomato&&G.sauce(tomato)?[[tomato,80,"F"]]:[]).concat([["olio",8,"C"]]),
    [cookStep(p),vs.length?`Aggiungi ${sn(vs[0])} e cuoci 10 minuti${tomato&&G.sauce(tomato)?" con "+sn(tomato):""}.`:"","Prepara la polenta istantanea come da confezione.",G.freshCheese(p)?`Servila calda con ${sn(p)} che si scioglie sopra.`:"Servi la polenta con il condimento sopra."],{porta:"caldo",min:30});}
- return out.slice(0,8).map((x,i)=>Object.assign(x,{id:"idea"+i}));
+ // ===== piatti "speciali": compaiono quando hai gli ingredienti giusti =====
+ const has=id=>H.includes(id),SP=o=>Object.assign({sp:1},o);
+ const riceLike=grains.find(x=>x==="riso"||x==="riso_pr")||grains[0]||null;
+ // curry al cocco
+ if(has("cocco")){const cp=P(x=>G.rawMeat(x)||G.vprot(x)||G.legume(x)||x==="gamberi");if(cp.length){const p=nxt(cp),vs=vegs(2),c=riceLike;
+  add(`Curry di ${sn(p)} al cocco${vs.length?" con "+list(vs.map(sn)):""}`,[[p,proG(p),"P"],["cocco",60,"C"]].concat(vit(vs,80)).concat(c?[[c,carbG(c),"C"]]:[]).concat(hasOnion?[["cipolla",30,"F"]]:[]).concat([["olio",5,"C"]]),
+   [hasOnion?"Soffriggi la cipolla nell'olio.":"Scalda l'olio.",cookStep(p),vs.length?`Aggiungi ${list(vs.map(sn))} a pezzi.`:"","Unisci un cucchiaino di curry a persona e il latte di cocco, cuoci 15 minuti.",c?`Servi con ${sn(c)} lessato.`:""],SP({min:35,kid:"Togli la sua porzione prima del curry, o mettine pochissimo."}));}}
+ // saltato all'orientale con salsa di soia
+ if(has("soia_s")){const op=P(x=>G.rawMeat(x)||G.vprot(x)||x==="gamberi"||G.egg(x));const c=has("noodles")?"noodles":riceLike;if(op.length&&cveg.length){const p=nxt(op),vs=vegs(3);
+  add(`${c?cap(sn(c)):"Verdure"} saltat${c==="noodles"?"i":"o"} all'orientale con ${list([sn(p)].concat(vs.map(sn)))}`,(c?[[c,carbG(c),"C"]]:[]).concat([[p,proG(p),"P"]]).concat(vit(vs,70)).concat([["soia_s",15,"F"],["olio",8,"C"]]),
+   [c?(c==="noodles"?"Cuoci i noodles come da confezione.":`Lessa ${sn(c)}.`):"",`Taglia ${list(vs.map(sn))} a striscioline.`,G.egg(p)?"Strapazza le uova in padella e tienile da parte.":`Salta ${sn(p)} a strisce in padella caldissima con l'olio.`,"Aggiungi le verdure per 5–6 minuti: devono restare croccanti.",`Unisci ${c?sn(c)+" e ":""}la salsa di soia e salta 1 minuto.`],SP({min:25,porta:p==="gamberi"?null:"caldo",kid:"Poca salsa di soia: è salata."}));}}
+ // fajitas / tacos
+ {const wr=breads.find(x=>x==="wrap"||x==="piadina"),fp=P(x=>["pollo_cr","tacch_cr","manzo","macinato","maci_bianco","vitello"].includes(x));
+  if(wr&&fp.length&&(has("peperoni")||hasOnion)){const p=nxt(fp),vs=["peperoni","cipolla"].filter(has).concat(["pomodori","mais","insalata"].filter(has)).slice(0,3),mince=p==="macinato"||p==="maci_bianco";
+   add(`${mince?"Tacos":"Fajitas"} di ${sn(p)} con ${list(vs.map(sn))}`,[[wr,carbG(wr),"C"],[p,proG(p),"P"]].concat(vit(vs,60)).concat(leg.length&&mince?[[leg[0],80,"P"]]:[]).concat([["olio",8,"C"]]),
+    [`Taglia ${mince?"le verdure a cubetti":sn(p)+" e verdure a strisce"}.`,`Salta tutto in padella caldissima con olio, paprika e cumino, 8–10 minuti${leg.length&&mince?"; aggiungi "+sn(leg[0])+" alla fine":""}.`,`Scalda ${wr==="wrap"?"i wrap":"le piadine"} e farcisci.`],SP({min:25,porta:"freddo",kid:"Togli la sua porzione prima delle spezie."}));}}
+ // hamburger
+ {const bb=breads.find(x=>x==="bun")||breads.find(x=>x==="pane"||x==="pane_int"),bp=P(x=>x==="macinato"||x==="maci_bianco");
+  if(bb&&bp.length){const p=nxt(bp),ch=fcheese.find(x=>["scamorza","mozzarella","mozz_l"].includes(x)),vs=["pomodori","insalata","cipolla","rucola"].filter(has).slice(0,2),side=pots[0];
+   add(`Hamburger di ${sn(p)}${ch?" con "+sn(ch):""}${side?" e "+sn(side)+" al forno":""}`,[[bb,bb==="bun"?60:80,"C"],[p,140,"P"]].concat(ch?[[ch,30,"P"]]:[]).concat(vit(vs,40)).concat(side?[[side,150,"C"]]:[]).concat([["olio",5,"C"]]),
+    [side?`Forno a 200 °C: ${sn(side)} a spicchi con l'olio per 30 minuti.`:"","Impasta la carne con un pizzico di sale e forma gli hamburger.",`Cuocili 4 minuti per lato${ch?", con "+sn(ch)+" sopra alla fine":""}.`,`Componi i panini${vs.length?" con "+list(vs.map(sn)):""}.`],SP({min:side?40:20,kid:"Hamburger ben cotto, a pezzetti."}));}}
+ // pasta al forno
+ {const pa=pastas.find(x=>x==="pasta"||x==="pasta_int"),melt=fcheese.find(x=>["mozzarella","mozz_l","scamorza","ricotta"].includes(x));
+  if(pa&&(has("besciamella")||melt)){const mp=P(x=>x==="macinato"||x==="maci_bianco"||x==="salsiccia"||x==="cotto");const p=mp.length?nxt(mp):null;if(!p)lastP=melt||null;const vs=vegs(p?1:2);
+   add(`Pasta al forno${p?" con "+sn(p):""}${vs.length?(p?" e ":" con ")+list(vs.map(sn)):""}`,[[pa,90,"C"]].concat(p?[[p,p==="cotto"?60:90,"P"]]:[]).concat(vit(vs,100)).concat(tomato&&G.sauce(tomato)?[[tomato,120,"F"]]:[]).concat(has("besciamella")?[["besciamella",80,"C"]]:[]).concat(melt?[[melt,p?40:80,"P"]]:[]).concat(aged.length?[[aged[0],10,"P"]]:[]),
+    [p&&p!=="cotto"?`Rosola ${sn(p)}${tomato&&G.sauce(tomato)?" e aggiungi "+sn(tomato)+": 15 minuti":""}.`:tomato&&G.sauce(tomato)?`Scalda ${sn(tomato)} 10 minuti.`:"",vs.length?`Cuoci ${list(vs.map(sn))} a pezzetti in padella.`:"","Cuoci la pasta molto al dente e mescolala con il condimento"+(has("besciamella")?", la besciamella":"")+(melt?" e "+sn(melt)+" a cubetti":"")+".",`In teglia${aged.length?" con "+sn(aged[0])+" sopra":""}: 20 minuti a 200 °C.`],SP({min:50,kid:"A pezzetti, lasciala intiepidire."}));}}
+ // risotto
+ if(has("riso")&&cveg.length){const rp=P(x=>["salsiccia","gamberi","pollo_cr","speck","pancetta"].includes(x));const p=rp.length?nxt(rp):null;if(!p)lastP=null;const vs=vegs(p?1:2);
+  add(`Risotto ${vs.length===1&&!p?"con "+sn(vs[0]):"con "+list((p?[sn(p)]:[]).concat(vs.map(sn)))}`,[["riso",80,"C"]].concat(p?[[p,p==="gamberi"?120:80,"P"]]:[]).concat(vit(vs,p?120:90)).concat(hasOnion?[["cipolla",20,"F"]]:[]).concat(aged.length?[[aged[0],p?10:20,"P"]]:[]).concat([[has("burro")?"burro":"olio",8,"C"]]),
+   [`Fai insaporire ${list((hasOnion?["cipolla"]:[]).concat(vs).map(sn))} a pezzetti${p&&p!=="gamberi"?" con "+sn(p):""}.`,"Tosta il riso 1 minuto, poi aggiungi brodo o acqua calda poco alla volta per 16–18 minuti.",p==="gamberi"?"Unisci i gamberi negli ultimi 4 minuti.":"",`Spegni e manteca${aged.length?" con "+sn(aged[0]):""}.`],SP({min:35,porta:p==="gamberi"?null:"caldo",kid:"Verdure tritate, riso ben cotto."}));}
+ // sformato al forno
+ if(has("uova")&&(pots.length||cveg.length)&&(fcheese.length||aged.length)){lastP="uova";const vs=vegs(2),base=pots[0]||null,ch=fcheese[0]||aged[0];
+  add(`Sformato di ${list((base?[sn(base)]:[]).concat(vs.map(sn)))} al forno`,[["uova",110,"P"]].concat(base?[[base,200,"C"]]:[]).concat(vit(vs,120)).concat([[ch,G.aged(ch)?20:60,"P"]]).concat(!base&&breads.length?[[breads[0],carbG(breads[0]),"C"]]:[]).concat([["olio",5,"C"]]),
+   [`Lessa ${list((base?[base]:[]).concat(vs).map(sn))} a pezzi finché sono teneri e schiacciali con la forchetta.`,`Mescola con le uova sbattute e ${sn(ch)}${G.aged(ch)?" grattugiato":" a pezzetti"}.`,"Versa in una teglia unta e cuoci 25–30 minuti a 190 °C, finché è dorato."],SP({min:50,porta:"freddo",kid:"Morbido e ben cotto: perfetto per i piccoli."}));}
+ // torta salata
+ if(has("sfoglia")&&(has("uova")||has("ricotta"))){lastP="uova";const vs=vegs(2),ch=fcheese[0]||null;
+  add(`Torta salata${vs.length?" di "+list(vs.map(sn)):""}${ch?" e "+sn(ch):""}`,[["sfoglia",60,"C"]].concat(has("uova")?[["uova",55,"P"]]:[]).concat(ch?[[ch,ch==="ricotta"?100:60,"P"]]:[]).concat(vit(vs,100)).concat(aged.length?[[aged[0],10,"P"]]:[]),
+   [vs.length?`Cuoci ${list(vs.map(sn))} in padella e tritali.`:"",`Mescola con ${list((has("uova")?["le uova sbattute"]:[]).concat(ch?[sn(ch)]:[]).concat(aged.length?[sn(aged[0])]:[]))}.`,"Versa nella sfoglia stesa in teglia, ripiega i bordi e cuoci 35 minuti a 190 °C."],SP({min:50,porta:"freddo",kid:"A fettine, tiepida."}));}
+ // piatto unico cereale + legume
+ if(grains.length&&leg.length){const c=nxt(grains),p=nxt(leg),vs=vegs(2,sveg.length?sveg:cveg),top=["feta","avocado","mozz_l","mozzarella"].find(has);
+  add(`Piatto unico di ${list([sn(c),sn(p)].concat(vs.map(sn)))}`,[[c,carbG(c)*.9|0,"C"],[p,150,"P"]].concat(vit(vs,80)).concat(top&&top!=="avocado"?[[top,40,"P"]]:[]).concat([["olio",10,"C"]]),
+   [c==="couscous"?"Prepara il cous cous con acqua bollente, copri 5 minuti e sgrana.":`Cuoci ${sn(c)} e lascialo intiepidire.`,cookStep(p),`Taglia ${list(vs.map(sn))} a cubetti${sveg.length?"":" e saltali 5 minuti"}.`,`Componi le ciotole${top?" con "+sn(top)+" sopra":""} e condisci con olio e limone.`],SP({min:30,porta:"freddo",kid:"Legumi schiacciati, verdure a pezzetti."}));}
+ // vellutata
+ {const cream=cveg.filter(x=>["zucca","carote_n","carote","broccoli","cavolfiore","porri","zucchine","spinaci","finocchi"].includes(x));
+  if(cream.length){const v=cream[rot%cream.length],p=leg.length?nxt(leg):null,br=breads.find(x=>x==="pane"||x==="pane_int"),ch=!p?(fcheese[0]||aged[0]||null):null;
+   if(p||ch)add(`Vellutata di ${sn(v)}${p?" con "+sn(p):ch?" con "+sn(ch):""}${br?" e crostini":""}`,[[v,250,"F"]].concat(pots.length?[[pots[0],100,"C"]]:[]).concat(p?[[p,150,"P"]]:ch?[[ch,G.aged(ch)?20:50,"P"]]:[]).concat(hasOnion?[["cipolla",20,"F"]]:[]).concat(br?[[br,60,"C"]]:[]).concat([["olio",8,"C"]]),
+    [`Cuoci ${list([v].concat(pots.length?[pots[0]]:[]).concat(hasOnion?["cipolla"]:[]).map(sn))} a pezzi in acqua che li copra, 20 minuti.`,"Frulla fino a ottenere una crema.",p?`Aggiungi ${sn(p)} e scalda 5 minuti.`:ch?`Aggiungi ${sn(ch)}.`:"",br?"Servi con crostini di pane e olio a crudo.":"Servi con olio a crudo."],SP({min:35,kid:"Perfetta così."}));}}
+ // spezzatino con patate
+ {const sp=P(x=>["manzo","vitello","agnello","coniglio","cosce","lonza","tacch_cr"].includes(x));
+  if(sp.length&&pots.length){const p=nxt(sp),vs=vegs(1,cveg.filter(x=>["carote_n","carote","piselli","funghi","sedano","peperoni"].includes(x)));
+   add(`Spezzatino di ${sn(p)} con ${list([sn(pots[0])].concat(vs.map(sn)))}`,[[p,proG(p)+20,"P"],[pots[0],220,"C"]].concat(vit(vs,80)).concat(tomato?[[tomato,100,"F"]]:[]).concat(hasOnion?[["cipolla",30,"F"]]:[]).concat([["olio",8,"C"]]),
+    [`Rosola ${sn(p)} a pezzi${hasOnion?" con la cipolla":""} nell'olio.`,`Aggiungi ${tomato?sn(tomato)+" e ":""}un bicchiere d'acqua; cuoci coperto 25 minuti.`,`Unisci ${list([pots[0]].concat(vs).map(sn))} a pezzi e cuoci altri 25 minuti.`],SP({min:60,kid:"Carne sfilacciata e patate schiacciate nel sugo."}));}}
+ // pesce al cartoccio
+ {const fp=P(G.rawFish).filter(x=>!["calamari","cozze","alici"].includes(x));
+  if(fp.length&&(cveg.length||tomato)){const p=nxt(fp),vs=vegs(2);
+   add(`${cap(sn(p))} al cartoccio${vs.length?" con "+list(vs.map(sn)):""}`,[[p,proG(p),"P"]].concat(vit(vs,100)).concat(pots.length?[[pots[0],200,"C"]]:breads.length?[[breads[0],carbG(breads[0]),"C"]]:[]).concat([["olio",8,"C"]]),
+    [pots.length?`Lessa ${sn(pots[0])} a pezzi.`:"",`Su un foglio di carta forno metti ${sn(p)}${vs.length?", "+list(vs.map(sn))+" a fettine":""}, olio e un pizzico di sale.`,"Chiudi bene il cartoccio e cuoci 18–20 minuti a 200 °C."],SP({min:35,porta:null,kid:"Pesce sbriciolato, controlla le spine."}));}}
+ // pasta fredda
+ {const pa=pastas.find(x=>x==="pasta"||x==="pasta_int"),cp=P(x=>G.canned(x)||G.freshCheese(x)||x==="cotto"||x==="wurstel");
+  if(pa&&cp.length&&sveg.length){const p=nxt(cp),vs=vegs(2,sveg),ch=fcheese.find(x=>x!==p&&(x==="mozzarella"||x==="mozz_l"||x==="feta"));
+   add(`Pasta fredda con ${list([sn(p)].concat(ch?[sn(ch)]:[]).concat(vs.map(sn)))}`,[[pa,90,"C"],[p,G.canned(p)?proG(p):70,"P"]].concat(ch?[[ch,50,"P"]]:[]).concat(vit(vs,80)).concat(has("olive")?[["olive",15,"C"]]:[]).concat([["olio",10,"C"]]),
+    ["Cuoci la pasta, scolala e raffreddala sotto l'acqua.",`Taglia ${list(vs.map(sn))} a cubetti${ch?" e "+sn(ch)+" a pezzetti":""}.`,`Unisci ${sn(p)}, le verdure e l'olio. Tienila in frigo.`],SP({min:20,porta:"freddo",kid:"Tutto a pezzetti piccoli."}));}}
+ // prima i piatti speciali (al massimo 6), poi quelli classici
+ const ord=out.filter(x=>x.sp).slice(0,6).concat(out.filter(x=>!x.sp));
+ return ord.slice(0,10).map((x,i)=>Object.assign(x,{id:"idea"+i}));
 }
 
 // ===== Ricette con Claude (solo nel link di Claude: usa il conto Claude di chi guarda) =====
